@@ -1,24 +1,42 @@
-"""Read-only monitor for running M2 clients.
+"""Monitor for running M2 clients.
 
-Lists every M2 client process with its server connections, latency
-and traffic. Latency and traffic come from Windows TCP extended statistics
-(EStats), which only an elevated prompt can enable; without admin rights
-those columns show "-". Nothing here sends, blocks or alters any packets.
+Shows every M2 client process as a card with its character name,
+server connections, latency and traffic. The name is read with OCR from
+screenshots of the client in a background thread. Latency and traffic come
+from Windows TCP extended statistics (EStats), which only an elevated prompt
+can enable; without admin rights those fields show "-". Each client has a
+Disconnect button that resets its server connections after a second
+confirming click, which also needs admin. Nothing else here sends, blocks
+or alters any packets.
 """
 import ctypes
 import os
 import socket
 import struct
+import subprocess
 import sys
+import threading
 import time
+from collections import Counter, deque
 from ctypes import wintypes
 
+import customtkinter as ctk
 import psutil
+
+import capture
+import charname
 
 PROCESS_NAME = "metin2client.exe"
 REFRESH_SECONDS = 1.0
+NAME_READ_SECONDS = 2.0
+# A name is shown once it is the most common of the last NAME_HISTORY reads
+# and was read at least NAME_MIN_VOTES times; single OCR misreads vary, so
+# they rarely repeat, while the real name does.
+NAME_HISTORY = 15
+NAME_MIN_VOTES = 2
 
 MIB_TCP_STATE_ESTAB = 5
+MIB_TCP_STATE_DELETE_TCB = 12
 TCP_ESTATS_DATA = 1
 TCP_ESTATS_PATH = 3
 
@@ -93,6 +111,18 @@ _GetEStats.argtypes = [
 ]
 _GetEStats.restype = wintypes.ULONG
 
+_SetTcpEntry = _iphlpapi.SetTcpEntry
+_SetTcpEntry.argtypes = [ctypes.POINTER(MIB_TCPROW)]
+_SetTcpEntry.restype = wintypes.DWORD
+
+
+def restart_as_admin():
+    """Relaunch this script elevated. Returns True if the UAC prompt was accepted."""
+    params = subprocess.list2cmdline([os.path.abspath(sys.argv[0])] + sys.argv[1:])
+    result = ctypes.windll.shell32.ShellExecuteW(
+        None, "runas", sys.executable, params, None, 1)
+    return result > 32
+
 
 def is_admin():
     try:
@@ -124,6 +154,13 @@ def enable_estats(row):
     return ok
 
 
+def close_connection(conn):
+    """Reset one TCP connection. Returns 0 on success. Needs admin."""
+    row = make_row(conn)
+    row.dwState = MIB_TCP_STATE_DELETE_TCB
+    return _SetTcpEntry(ctypes.byref(row))
+
+
 def read_estats(row, estats_type, rod_cls):
     rod = rod_cls()
     err = _GetEStats(ctypes.byref(row), estats_type,
@@ -132,17 +169,20 @@ def read_estats(row, estats_type, rod_cls):
     return rod if err == 0 else None
 
 
+def established_conns(proc):
+    try:
+        return [c for c in proc.net_connections(kind="tcp4")
+                if c.status == psutil.CONN_ESTABLISHED and c.raddr]
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return []
+
+
 def find_clients():
     clients = []
     for proc in psutil.process_iter(["pid", "name", "create_time", "memory_info"]):
         if (proc.info["name"] or "").lower() != PROCESS_NAME:
             continue
-        try:
-            conns = [c for c in proc.net_connections(kind="tcp4")
-                     if c.status == psutil.CONN_ESTABLISHED and c.raddr]
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            conns = []
-        clients.append((proc.info, conns))
+        clients.append((proc.info, established_conns(proc)))
     clients.sort(key=lambda c: c[0]["create_time"])
     return clients
 
@@ -155,79 +195,332 @@ def fmt_total(value):
     return "-" if value is None else f"{value / (1024 * 1024):.2f}"
 
 
+def collect_clients(admin, enabled, previous):
+    """Return (info, stats) per client, with one stats tuple per connection.
+
+    `enabled` and `previous` carry EStats state between calls.
+    """
+    now = time.monotonic()
+    clients = []
+    seen = set()
+    for info, conns in find_clients():
+        stats = []
+        for conn in conns:
+            key = (info["pid"], conn.laddr, conn.raddr)
+            seen.add(key)
+            server = f"{conn.raddr.ip}:{conn.raddr.port}"
+            rtt = rate_in = rate_out = total_in = total_out = None
+
+            if admin:
+                row = make_row(conn)
+                if key not in enabled and enable_estats(row):
+                    enabled.add(key)
+                path = read_estats(row, TCP_ESTATS_PATH, TCP_ESTATS_PATH_ROD_v0)
+                data = read_estats(row, TCP_ESTATS_DATA, TCP_ESTATS_DATA_ROD_v0)
+                if path is not None and path.SmoothedRtt:
+                    rtt = path.SmoothedRtt
+                if data is not None:
+                    total_in, total_out = data.DataBytesIn, data.DataBytesOut
+                    if key in previous:
+                        prev_in, prev_out, prev_t = previous[key]
+                        elapsed = max(now - prev_t, 1e-6)
+                        rate_in = (total_in - prev_in) / elapsed
+                        rate_out = (total_out - prev_out) / elapsed
+                    previous[key] = (total_in, total_out, now)
+
+            stats.append((server, rtt, rate_in, rate_out, total_in, total_out))
+        clients.append((info, stats))
+
+    for key in list(previous):
+        if key not in seen:
+            del previous[key]
+    enabled &= seen
+    return clients
+
+
+class NameReader(threading.Thread):
+    """Reads character names in the background; OCR is too slow for the UI thread."""
+
+    def __init__(self):
+        super().__init__(daemon=True)
+        self.lock = threading.Lock()
+        self.pids = set()
+        self.reads = {}  # pid -> deque of recent reads, None for "no name seen"
+
+    def track(self, pids):
+        with self.lock:
+            self.pids = set(pids)
+            for pid in list(self.reads):
+                if pid not in self.pids:
+                    del self.reads[pid]
+
+    def name(self, pid):
+        with self.lock:
+            votes = Counter(n for n in self.reads.get(pid, ()) if n)
+        if not votes:
+            return None
+        name, count = votes.most_common(1)[0]
+        return name if count >= NAME_MIN_VOTES else None
+
+    def run(self):
+        while True:
+            with self.lock:
+                pids = sorted(self.pids)
+            for pid in pids:
+                try:
+                    screenshot = capture.capture_window(capture.main_window(pid))
+                    name = charname.read_character_name(screenshot)
+                except Exception:  # a client closing mid-read must not stop the thread
+                    name = None
+                with self.lock:
+                    if pid in self.pids:
+                        self.reads.setdefault(pid, deque(maxlen=NAME_HISTORY)).append(name)
+            time.sleep(NAME_READ_SECONDS)
+
+
+FONT_FAMILY = "Segoe UI"
+MONO_FAMILY = "Consolas"
+CONFIRM_SECONDS = 3
+MESSAGE_SECONDS = 6
+
+# (light, dark) colour pairs; CustomTkinter picks one to match the system theme.
+TEXT = ("gray10", "gray90")
+MUTED = ("gray40", "gray65")
+GOOD = ("#1a7f37", "#3fb950")
+WARN = ("#9a6700", "#d29922")
+BAD = ("#cf222e", "#f85149")
+DANGER = ("#cf222e", "#da3633")
+DANGER_HOVER = ("#a40e26", "#b62324")
+CONFIRM = ("#9a6700", "#bb8009")
+CONFIRM_HOVER = ("#7d4e00", "#9e6a03")
+PILL = ("gray85", "gray25")
+
+
+def rtt_color(rtt):
+    if rtt is None:
+        return MUTED
+    return GOOD if rtt < 80 else WARN if rtt < 150 else BAD
+
+
+def format_connection(stats):
+    """Return (rtt, texts) where texts fill the connection row left to right."""
+    server, rtt, rate_in, rate_out, total_in, total_out = stats
+    return rtt, (server,
+                 "- ms" if rtt is None else f"{rtt} ms",
+                 f"In {fmt_rate(rate_in)} KB/s",
+                 f"Out {fmt_rate(rate_out)} KB/s",
+                 f"{fmt_total(total_in)} / {fmt_total(total_out)} MB")
+
+
+class ClientCard(ctk.CTkFrame):
+    """One rounded card per client: identity, connections, disconnect button."""
+
+    CONN_WIDTHS = (170, 70, 120, 120, 130)
+
+    def __init__(self, master, app, pid):
+        super().__init__(master, corner_radius=10)
+        self.app = app
+        self.pid = pid
+        self.confirm_job = None
+        self.conn_rows = []
+        self.grid_columnconfigure(1, weight=1)
+
+        # Fixed width keeps the connection columns aligned across cards.
+        self.title = ctk.CTkLabel(self, anchor="w", width=160,
+                                  font=ctk.CTkFont(FONT_FAMILY, 15, "bold"))
+        self.title.grid(row=0, column=0, sticky="w", padx=(16, 24), pady=(12, 0))
+        self.details = ctk.CTkLabel(self, anchor="w", justify="left",
+                                    text_color=MUTED,
+                                    font=ctk.CTkFont(FONT_FAMILY, 12))
+        self.details.grid(row=1, column=0, sticky="nw", padx=(16, 24), pady=(0, 12))
+
+        self.conn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.conn_frame.grid(row=0, column=1, rowspan=2, sticky="ew", pady=12)
+
+        self.button = ctk.CTkButton(self, text="Disconnect", width=120,
+                                    fg_color=DANGER, hover_color=DANGER_HOVER,
+                                    font=ctk.CTkFont(FONT_FAMILY, 13, "bold"),
+                                    command=self.on_click)
+        self.button.grid(row=0, column=2, rowspan=2, padx=16, pady=12)
+
+    def show(self, index, info, stats, admin, name):
+        started = time.strftime("%H:%M:%S", time.localtime(info["create_time"]))
+        ram = info["memory_info"].rss / (1024 * 1024) if info["memory_info"] else 0
+        if name:
+            self.title.configure(text=name, text_color=TEXT)
+        else:
+            self.title.configure(text="Reading name…", text_color=MUTED)
+        self.details.configure(
+            text=f"Client {index}  ·  PID {info['pid']}\n"
+                 f"Started {started}\n{ram:.0f} MB RAM")
+        self.show_connections(stats)
+
+        if admin and stats:
+            self.button.configure(state="normal")
+            if self.confirm_job is None:
+                self.button.configure(fg_color=DANGER)
+        else:
+            self.reset_confirm()
+            self.button.configure(state="disabled", fg_color=PILL)
+
+    def show_connections(self, stats):
+        rows = [format_connection(s) for s in stats]
+        wanted = max(len(rows), 1)
+        while len(self.conn_rows) < wanted:
+            self.conn_rows.append(self.make_conn_row(len(self.conn_rows)))
+        while len(self.conn_rows) > wanted:
+            for label in self.conn_rows.pop():
+                label.destroy()
+
+        if not rows:
+            labels = self.conn_rows[0]
+            labels[0].configure(text="No connection", text_color=MUTED)
+            for label in labels[1:]:
+                label.configure(text="")
+            return
+        for labels, (rtt, texts) in zip(self.conn_rows, rows):
+            for label, text in zip(labels, texts):
+                label.configure(text=text)
+            labels[0].configure(text_color=TEXT)
+            labels[1].configure(text_color=rtt_color(rtt))
+
+    def make_conn_row(self, row):
+        mono = ctk.CTkFont(MONO_FAMILY, 13)
+        labels = []
+        for col, width in enumerate(self.CONN_WIDTHS):
+            label = ctk.CTkLabel(self.conn_frame, width=width, anchor="w",
+                                 font=mono, text_color=MUTED)
+            label.grid(row=row, column=col, sticky="w", padx=(0, 8))
+            labels.append(label)
+        return labels
+
+    def on_click(self):
+        if self.confirm_job is None:
+            self.button.configure(text="Confirm?", fg_color=CONFIRM,
+                                  hover_color=CONFIRM_HOVER)
+            self.confirm_job = self.after(CONFIRM_SECONDS * 1000, self.reset_confirm)
+            return
+        self.reset_confirm()
+        self.app.disconnect(self.pid)
+
+    def reset_confirm(self):
+        if self.confirm_job is not None:
+            self.after_cancel(self.confirm_job)
+            self.confirm_job = None
+        self.button.configure(text="Disconnect", fg_color=DANGER,
+                              hover_color=DANGER_HOVER)
+
+
+class MonitorApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.admin = is_admin()
+        self.enabled = set()
+        self.previous = {}
+        self.cards = {}  # pid -> ClientCard
+        self.message_job = None
+        self.names = NameReader()
+        self.names.start()
+
+        self.title("M2 Monitor")
+        self.geometry("980x520")
+        self.minsize(820, 300)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", padx=20, pady=(16, 8))
+        header.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(header, text="M2 Monitor",
+                     font=ctk.CTkFont(FONT_FAMILY, 22, "bold")).grid(
+            row=0, column=0, sticky="w")
+        self.summary = ctk.CTkLabel(header, text_color=MUTED,
+                                    font=ctk.CTkFont(FONT_FAMILY, 13))
+        self.summary.grid(row=1, column=0, columnspan=2, sticky="w")
+        if self.admin:
+            ctk.CTkLabel(header, text="  Administrator  ", fg_color=PILL,
+                         corner_radius=12, text_color=GOOD,
+                         font=ctk.CTkFont(FONT_FAMILY, 12, "bold")).grid(
+                row=0, column=2, rowspan=2, sticky="e")
+        else:
+            ctk.CTkButton(header, text="Restart as administrator",
+                          font=ctk.CTkFont(FONT_FAMILY, 13),
+                          command=self.elevate).grid(
+                row=0, column=2, rowspan=2, sticky="e")
+
+        self.list = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.list.grid(row=1, column=0, sticky="nsew", padx=12)
+        self.list.grid_columnconfigure(0, weight=1)
+        self.empty = ctk.CTkLabel(self.list, text="No M2 clients running.",
+                                  text_color=MUTED,
+                                  font=ctk.CTkFont(FONT_FAMILY, 14))
+
+        self.status = ctk.CTkLabel(self, text="", anchor="w",
+                                   font=ctk.CTkFont(FONT_FAMILY, 13))
+        self.status.grid(row=2, column=0, sticky="ew", padx=20, pady=(4, 12))
+        self.refresh()
+
+    def refresh(self):
+        clients = collect_clients(self.admin, self.enabled, self.previous)
+        live = {info["pid"] for info, _ in clients}
+        self.names.track(live)
+        for pid in list(self.cards):
+            if pid not in live:
+                self.cards.pop(pid).destroy()
+
+        for index, (info, stats) in enumerate(clients, start=1):
+            pid = info["pid"]
+            if pid not in self.cards:
+                self.cards[pid] = ClientCard(self.list, self, pid)
+            card = self.cards[pid]
+            card.show(index, info, stats, self.admin, self.names.name(pid))
+            card.grid(row=index, column=0, sticky="ew", padx=8, pady=(0, 10))
+
+        if clients:
+            self.empty.grid_forget()
+        else:
+            self.empty.grid(row=0, column=0, pady=60)
+
+        connected = sum(1 for _, stats in clients if stats)
+        summary = f"{len(clients)} client(s), {connected} connected"
+        if not self.admin:
+            summary += "  ·  RTT, traffic and disconnect need administrator rights"
+        self.summary.configure(text=summary)
+        self.after(int(REFRESH_SECONDS * 1000), self.refresh)
+
+    def disconnect(self, pid):
+        try:
+            conns = established_conns(psutil.Process(pid))
+        except psutil.NoSuchProcess:
+            conns = []
+        errors = [err for err in map(close_connection, conns) if err]
+        if not conns:
+            self.show_message(f"PID {pid}: no connection to close.", WARN)
+        elif errors:
+            self.show_message(f"PID {pid}: failed to close {len(errors)} of "
+                              f"{len(conns)} connection(s) (error {errors[0]}).", BAD)
+        else:
+            self.show_message(f"PID {pid}: closed {len(conns)} connection(s).", GOOD)
+
+    def show_message(self, text, color):
+        if self.message_job is not None:
+            self.after_cancel(self.message_job)
+        self.status.configure(text=text, text_color=color)
+        self.message_job = self.after(
+            MESSAGE_SECONDS * 1000, lambda: self.status.configure(text=""))
+
+    def elevate(self):
+        if restart_as_admin():
+            self.destroy()
+        else:
+            self.show_message("Elevation was cancelled.", WARN)
+
+
 def main():
-    os.system("")  # enables ANSI escape handling in the classic console
-    admin = is_admin()
-    enabled = set()
-    previous = {}
-
-    while True:
-        now = time.monotonic()
-        lines = []
-        header = (f"{'#':>2}  {'PID':>6}  {'Started':>8}  {'RAM MB':>7}  "
-                  f"{'Server':<21}  {'RTT ms':>6}  {'In KB/s':>7}  "
-                  f"{'Out KB/s':>8}  {'In MB':>7}  {'Out MB':>7}")
-        lines.append(header)
-        lines.append("-" * len(header))
-
-        clients = find_clients()
-        seen = set()
-        for index, (info, conns) in enumerate(clients, start=1):
-            started = time.strftime("%H:%M:%S", time.localtime(info["create_time"]))
-            ram = info["memory_info"].rss / (1024 * 1024) if info["memory_info"] else 0
-            prefix = f"{index:>2}  {info['pid']:>6}  {started:>8}  {ram:>7.0f}  "
-
-            if not conns:
-                lines.append(prefix + f"{'(no connection)':<21}")
-                continue
-
-            for conn in conns:
-                key = (info["pid"], conn.laddr, conn.raddr)
-                seen.add(key)
-                server = f"{conn.raddr.ip}:{conn.raddr.port}"
-                rtt = rate_in = rate_out = total_in = total_out = None
-
-                if admin:
-                    row = make_row(conn)
-                    if key not in enabled and enable_estats(row):
-                        enabled.add(key)
-                    path = read_estats(row, TCP_ESTATS_PATH, TCP_ESTATS_PATH_ROD_v0)
-                    data = read_estats(row, TCP_ESTATS_DATA, TCP_ESTATS_DATA_ROD_v0)
-                    if path is not None and path.SmoothedRtt:
-                        rtt = path.SmoothedRtt
-                    if data is not None:
-                        total_in, total_out = data.DataBytesIn, data.DataBytesOut
-                        if key in previous:
-                            prev_in, prev_out, prev_t = previous[key]
-                            elapsed = max(now - prev_t, 1e-6)
-                            rate_in = (total_in - prev_in) / elapsed
-                            rate_out = (total_out - prev_out) / elapsed
-                        previous[key] = (total_in, total_out, now)
-
-                lines.append(
-                    prefix
-                    + f"{server:<21}  {('-' if rtt is None else rtt):>6}  "
-                    f"{fmt_rate(rate_in):>7}  {fmt_rate(rate_out):>8}  "
-                    f"{fmt_total(total_in):>7}  {fmt_total(total_out):>7}"
-                )
-                prefix = " " * len(prefix)
-
-        for key in list(previous):
-            if key not in seen:
-                del previous[key]
-        enabled &= seen
-
-        lines.append("")
-        lines.append(f"{len(clients)} client(s). "
-                     + ("" if admin else "Run as administrator for RTT and traffic. ")
-                     + "Ctrl+C to quit.")
-        sys.stdout.write("\x1b[2J\x1b[H" + "\n".join(lines) + "\n")
-        sys.stdout.flush()
-        time.sleep(REFRESH_SECONDS)
+    ctk.set_appearance_mode("system")
+    ctk.set_default_color_theme("blue")
+    MonitorApp().mainloop()
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    main()

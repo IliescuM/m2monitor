@@ -1,1 +1,11 @@
 psutil>=5.9
+customtkinter>=5.2
+pillow>=10
+windows-capture>=2.0
+winrt-runtime>=2.0
+winrt-Windows.Foundation>=2.0
+winrt-Windows.Foundation.Collections>=2.0
+winrt-Windows.Globalization>=2.0
+winrt-Windows.Graphics.Imaging>=2.0
+winrt-Windows.Media.Ocr>=2.0
+winrt-Windows.Storage.Streams>=2.0
