@@ -5,11 +5,13 @@ server connections, latency and traffic. The name is read with OCR from
 screenshots of the client in a background thread. Latency and traffic come
 from Windows TCP extended statistics (EStats), which only an elevated prompt
 can enable; without admin rights those fields show "-". Each client has a
-Disconnect button that resets its server connections after a second
-confirming click, which also needs admin. Nothing else here sends, blocks
+Disconnect button that resets its server connections, which also needs
+admin; a header checkbox decides whether it asks for a second confirming
+click. Nothing else here sends, blocks
 or alters any packets.
 """
 import ctypes
+import json
 import os
 import socket
 import struct
@@ -34,6 +36,8 @@ NAME_READ_SECONDS = 2.0
 # they rarely repeat, while the real name does.
 NAME_HISTORY = 15
 NAME_MIN_VOTES = 2
+SETTINGS_PATH = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")),
+                             "m2monitor", "settings.json")
 
 MIB_TCP_STATE_ESTAB = 5
 MIB_TCP_STATE_DELETE_TCB = 12
@@ -114,6 +118,23 @@ _GetEStats.restype = wintypes.ULONG
 _SetTcpEntry = _iphlpapi.SetTcpEntry
 _SetTcpEntry.argtypes = [ctypes.POINTER(MIB_TCPROW)]
 _SetTcpEntry.restype = wintypes.DWORD
+
+
+def load_settings():
+    try:
+        with open(SETTINGS_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def save_settings(settings):
+    try:
+        os.makedirs(os.path.dirname(SETTINGS_PATH), exist_ok=True)
+        with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=2)
+    except OSError:
+        pass  # settings are a convenience; the app works without them
 
 
 def restart_as_admin():
@@ -321,6 +342,7 @@ class ClientCard(ctk.CTkFrame):
         super().__init__(master, corner_radius=10)
         self.app = app
         self.pid = pid
+        self.create_time = None
         self.confirm_job = None
         self.conn_rows = []
         self.grid_columnconfigure(1, weight=1)
@@ -344,6 +366,7 @@ class ClientCard(ctk.CTkFrame):
         self.button.grid(row=0, column=2, rowspan=2, padx=16, pady=12)
 
     def show(self, index, info, stats, admin, name):
+        self.create_time = info["create_time"]
         started = time.strftime("%H:%M:%S", time.localtime(info["create_time"]))
         ram = info["memory_info"].rss / (1024 * 1024) if info["memory_info"] else 0
         if name:
@@ -395,13 +418,13 @@ class ClientCard(ctk.CTkFrame):
         return labels
 
     def on_click(self):
-        if self.confirm_job is None:
+        if self.confirm_job is None and self.app.confirm_disconnect.get():
             self.button.configure(text="Confirm?", fg_color=CONFIRM,
                                   hover_color=CONFIRM_HOVER)
             self.confirm_job = self.after(CONFIRM_SECONDS * 1000, self.reset_confirm)
             return
         self.reset_confirm()
-        self.app.disconnect(self.pid)
+        self.app.disconnect(self.pid, self.create_time)
 
     def reset_confirm(self):
         if self.confirm_job is not None:
@@ -409,6 +432,13 @@ class ClientCard(ctk.CTkFrame):
             self.confirm_job = None
         self.button.configure(text="Disconnect", fg_color=DANGER,
                               hover_color=DANGER_HOVER)
+
+    def destroy(self):
+        # A pending confirm timeout would otherwise fire on a dead button.
+        if self.confirm_job is not None:
+            self.after_cancel(self.confirm_job)
+            self.confirm_job = None
+        super().destroy()
 
 
 class MonitorApp(ctk.CTk):
@@ -419,12 +449,15 @@ class MonitorApp(ctk.CTk):
         self.previous = {}
         self.cards = {}  # pid -> ClientCard
         self.message_job = None
+        self.settings = load_settings()
+        self.confirm_disconnect = ctk.BooleanVar(
+            value=self.settings.get("confirm_disconnect", True))
         self.names = NameReader()
         self.names.start()
 
         self.title("M2 Monitor")
-        self.geometry("980x520")
-        self.minsize(820, 300)
+        self.geometry("1060x540")
+        self.minsize(900, 300)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
@@ -437,6 +470,11 @@ class MonitorApp(ctk.CTk):
         self.summary = ctk.CTkLabel(header, text_color=MUTED,
                                     font=ctk.CTkFont(FONT_FAMILY, 13))
         self.summary.grid(row=1, column=0, columnspan=2, sticky="w")
+        ctk.CTkCheckBox(header, text="Confirm before disconnect",
+                        variable=self.confirm_disconnect,
+                        command=self.save_confirm_setting,
+                        font=ctk.CTkFont(FONT_FAMILY, 13)).grid(
+            row=0, column=1, rowspan=2, sticky="e", padx=16)
         if self.admin:
             ctk.CTkLabel(header, text="  Administrator  ", fg_color=PILL,
                          corner_radius=12, text_color=GOOD,
@@ -461,6 +499,13 @@ class MonitorApp(ctk.CTk):
         self.refresh()
 
     def refresh(self):
+        # Reschedule even if an update fails, so one error can't freeze the window.
+        try:
+            self.update_cards()
+        finally:
+            self.after(int(REFRESH_SECONDS * 1000), self.refresh)
+
+    def update_cards(self):
         clients = collect_clients(self.admin, self.enabled, self.previous)
         live = {info["pid"] for info, _ in clients}
         self.names.track(live)
@@ -486,13 +531,20 @@ class MonitorApp(ctk.CTk):
         if not self.admin:
             summary += "  ·  RTT, traffic and disconnect need administrator rights"
         self.summary.configure(text=summary)
-        self.after(int(REFRESH_SECONDS * 1000), self.refresh)
 
-    def disconnect(self, pid):
+    def disconnect(self, pid, create_time):
+        # The PID may have been reused since the card was drawn; only touch
+        # the same client process the user clicked on.
         try:
-            conns = established_conns(psutil.Process(pid))
-        except psutil.NoSuchProcess:
-            conns = []
+            proc = psutil.Process(pid)
+            same = (proc.name().lower() == PROCESS_NAME
+                    and proc.create_time() == create_time)
+        except psutil.Error:
+            same = False
+        if not same:
+            self.show_message(f"PID {pid}: client has exited.", WARN)
+            return
+        conns = established_conns(proc)
         errors = [err for err in map(close_connection, conns) if err]
         if not conns:
             self.show_message(f"PID {pid}: no connection to close.", WARN)
@@ -508,6 +560,10 @@ class MonitorApp(ctk.CTk):
         self.status.configure(text=text, text_color=color)
         self.message_job = self.after(
             MESSAGE_SECONDS * 1000, lambda: self.status.configure(text=""))
+
+    def save_confirm_setting(self):
+        self.settings["confirm_disconnect"] = self.confirm_disconnect.get()
+        save_settings(self.settings)
 
     def elevate(self):
         if restart_as_admin():
