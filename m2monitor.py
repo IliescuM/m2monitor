@@ -40,6 +40,10 @@ NAME_MIN_VOTES = 2
 NAME_SWITCH_VOTES = 3
 SETTINGS_PATH = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")),
                              "m2monitor", "settings.json")
+# A built .exe unpacks bundled files under sys._MEIPASS.
+ICON_PATH = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))),
+                         "assets", "icon.ico")
+APP_ID = "IliescuM.M2Monitor"
 
 MIB_TCP_STATE_ESTAB = 5
 MIB_TCP_STATE_DELETE_TCB = 12
@@ -474,6 +478,8 @@ class MonitorApp(ctk.CTk):
         self.names.start()
 
         self.title("M2 Monitor")
+        if os.path.exists(ICON_PATH):
+            self.iconbitmap(ICON_PATH)  # also stops CustomTkinter applying its own icon
         self.geometry("1060x540")
         self.minsize(900, 300)
         self.grid_columnconfigure(0, weight=1)
@@ -591,6 +597,8 @@ class MonitorApp(ctk.CTk):
 
 
 def main():
+    # Own taskbar identity, so the taskbar shows this app's icon, not Python's.
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
     ctk.set_appearance_mode("system")
     ctk.set_default_color_theme("blue")
     MonitorApp().mainloop()

@@ -5,27 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>M2 Monitor</title>
 <meta name="description" content="A free, open-source Windows app that shows every M2 game client you have open: character name, server, latency, traffic, and a one-click disconnect.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1714'/%3E%3Cpath d='M7 23V9l5 7 5-7v14' fill='none' stroke='%236cc3a6' stroke-width='2.6' stroke-linejoin='round'/%3E%3Ccircle cx='23.5' cy='20.5' r='2.6' fill='%23d4ad5a'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one narrow reading column; the hero pairs the pitch with a live mock of the app's client cards. */
+/* Palette follows the app icon: night indigo, gold, cyan. Layout: one narrow reading column; the hero pairs the pitch with a live mock of the app's client cards. */
 :root {
-  --ink: #14211d;
-  --paper: #eef3ef;
+  --ink: #1a1630;
+  --paper: #f3f1f8;
   --panel: #ffffff;
-  --line: #cfdcd5;
-  --muted: #55675f;
-  --jade: #2f7d66;
-  --bronze: #8c6219;
+  --line: #dcd6ea;
+  --muted: #5e5878;
+  --jade: #0f7f8a;
+  --bronze: #9a5d0c;
   --good: #1f7a4a;
   --warn: #9a6700;
   --danger: #c23a2b;
-  --card: #1b2421;
-  --card-2: #232e2a;
-  --card-fg: #e6efe9;
-  --card-muted: #93a69d;
+  --card: #1a1730;
+  --card-2: #231f3d;
+  --card-fg: #ece8f7;
+  --card-muted: #a39cbf;
   --display: "Chakra Petch", "Bahnschrift", "Segoe UI", sans-serif;
   --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
@@ -33,18 +34,18 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ink: #e6efe9; --paper: #0e1714; --panel: #15201c; --line: #26352f;
-    --muted: #93a69d; --jade: #6cc3a6; --bronze: #d4ad5a;
+    --ink: #ece8f7; --paper: #0c0a1c; --panel: #15122b; --line: #2a2547;
+    --muted: #a39cbf; --jade: #3fd0dc; --bronze: #f0b44c;
     --good: #4cc47e; --warn: #d9a53a; --danger: #e5574a;
-    --card: #1a2420; --card-2: #212d28;
+    --card: #1a1730; --card-2: #231f3d;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --ink: #e6efe9; --paper: #0e1714; --panel: #15201c; --line: #26352f;
-  --muted: #93a69d; --jade: #6cc3a6; --bronze: #d4ad5a;
+  --ink: #ece8f7; --paper: #0c0a1c; --panel: #15122b; --line: #2a2547;
+  --muted: #a39cbf; --jade: #3fd0dc; --bronze: #f0b44c;
   --good: #4cc47e; --warn: #d9a53a; --danger: #e5574a;
-  --card: #1a2420; --card-2: #212d28;
+  --card: #1a1730; --card-2: #231f3d;
   color-scheme: dark;
 }
 
@@ -73,7 +74,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
 .top { padding-block: 20px; }
 .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 10px; font: 700 1.15rem var(--display); color: var(--ink); text-decoration: none; letter-spacing: 0.02em; }
-.brand svg { width: 28px; height: 28px; }
+.brand img { width: 32px; height: 32px; }
 .top nav { display: flex; gap: 20px; font-size: 0.95rem; }
 .top nav a { color: var(--muted); text-decoration: none; }
 .top nav a:hover { color: var(--ink); }
@@ -212,7 +213,7 @@ footer .row { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0e1714"/><path d="M7 23V9l5 7 5-7v14" fill="none" stroke="#6cc3a6" stroke-width="2.6" stroke-linejoin="round"/><circle cx="23.5" cy="20.5" r="2.6" fill="#d4ad5a"/></svg>
+      <img src="icon.png" alt="" width="32" height="32">
       M2 Monitor
     </a>
     <nav aria-label="Sections">
