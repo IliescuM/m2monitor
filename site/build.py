@@ -3,6 +3,7 @@
 English goes to docs/index.html, every other language to docs/<code>/.
 Run from anywhere: python site/build.py
 """
+import hashlib
 import json
 import os
 import re
@@ -18,6 +19,12 @@ FLAGS = {"en": "gb", "tr": "tr", "ro": "ro", "de": "de", "it": "it",
          "pl": "pl", "pt": "pt", "es": "es", "hu": "hu"}
 
 
+def file_version(name):
+    """Short content hash, so browsers fetch a changed file instead of a cached one."""
+    with open(os.path.join(DOCS, name), "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()[:10]
+
+
 def page_url(lang):
     return BASE_URL if lang == DEFAULT else f"{BASE_URL}{lang}/"
 
@@ -31,7 +38,7 @@ def main():
     langs = list(strings)
     keys = set(strings[DEFAULT])
     used = set(re.findall(r"\{\{(\w+)\}\}", template))
-    generated = {"lang", "root", "canonical", "hreflang", "langnav"}
+    generated = {"lang", "root", "canonical", "hreflang", "langnav", "css_version", "js_version"}
     errors = [f"{lang}: missing {sorted(keys - set(s))}, extra {sorted(set(s) - keys)}"
               for lang, s in strings.items() if set(s) != keys]
     errors += [f"template uses unknown key {k}" for k in sorted(used - keys - generated)]
@@ -56,7 +63,8 @@ def main():
         langnav = (f'<details class="lang-menu"><summary aria-label="{strings[lang]["lang_label"]}">'
                    f'{flag(lang)}<span>{lang.upper()}</span></summary><ul>{items}</ul></details>')
         values = dict(strings[lang], lang=lang, root=root, canonical=page_url(lang),
-                      hreflang=hreflang, langnav=langnav)
+                      hreflang=hreflang, langnav=langnav,
+                      css_version=file_version("style.css"), js_version=file_version("site.js"))
         html = re.sub(r"\{\{(\w+)\}\}", lambda m: values[m.group(1)], template)
         html = html.replace("{dl}", DOWNLOAD_URL)
 
