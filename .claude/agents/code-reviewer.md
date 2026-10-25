@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash
 ---
 
 You review code in m2monitor, a Windows-only Python tool that monitors
-running M2 clients: a CustomTkinter window (`m2monitor.py`), window
+running M2 game clients: a CustomTkinter window (`m2monitor.py`), window
 capture through Windows Graphics Capture (`capture.py`) and character-name
 OCR through WinRT (`charname.py`).
 

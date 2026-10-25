@@ -66,8 +66,9 @@ def client_box(hwnd):
     the title bar and borders.
     """
     frame = wintypes.RECT()
-    dwmapi.DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS,
-                                 ctypes.byref(frame), ctypes.sizeof(frame))
+    if dwmapi.DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS,
+                                    ctypes.byref(frame), ctypes.sizeof(frame)):
+        return None  # failed HRESULT, e.g. the window is closing
     origin = wintypes.POINT(0, 0)
     user32.ClientToScreen(hwnd, ctypes.byref(origin))
     client = wintypes.RECT()
@@ -107,10 +108,14 @@ def capture_window(hwnd):
         pixels = grab_frame(hwnd)
     except Exception:  # windows-capture raises plain Exception for closed windows
         return None
-    if pixels is None:
+    box = client_box(hwnd)
+    if pixels is None or box is None:
         return None
-    image = Image.fromarray(pixels[:, :, 2::-1])  # BGRA to RGB
-    left, top, right, bottom = client_box(hwnd)
+    left, top, right, bottom = box
+    height, width = pixels.shape[:2]
+    left, top = max(left, 0), max(top, 0)
+    right, bottom = min(right, width), min(bottom, height)
     if right <= left or bottom <= top:
         return None
-    return image.crop((left, top, min(right, image.width), min(bottom, image.height)))
+    # Crop before converting, so only the client area is copied.
+    return Image.fromarray(pixels[top:bottom, left:right, 2::-1].copy())  # BGRA to RGB

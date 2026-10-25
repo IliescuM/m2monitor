@@ -1,6 +1,6 @@
-"""Monitor for running M2 clients.
+"""Monitor for running M2 game clients.
 
-Shows every M2 client process as a card with its character name,
+Shows every client process (PROCESS_NAME) as a card with its character name,
 server connections, latency and traffic. The name is read with OCR from
 screenshots of the client in a background thread. Latency and traffic come
 from Windows TCP extended statistics (EStats), which only an elevated prompt
@@ -32,10 +32,12 @@ PROCESS_NAME = "metin2client.exe"
 REFRESH_SECONDS = 1.0
 NAME_READ_SECONDS = 2.0
 # A name is shown once it is the most common of the last NAME_HISTORY reads
-# and was read at least NAME_MIN_VOTES times; single OCR misreads vary, so
-# they rarely repeat, while the real name does.
+# and was read at least NAME_MIN_VOTES times, or right away once it is read
+# NAME_SWITCH_VOTES times in a row; single OCR misreads vary, so they rarely
+# repeat, while the real name does.
 NAME_HISTORY = 15
 NAME_MIN_VOTES = 2
+NAME_SWITCH_VOTES = 3
 SETTINGS_PATH = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")),
                              "m2monitor", "settings.json")
 
@@ -199,12 +201,18 @@ def established_conns(proc):
 
 
 def find_clients():
+    # Ask every process only for its name: fetching more attributes for all
+    # of them takes hundreds of milliseconds, mostly on protected processes.
     clients = []
-    for proc in psutil.process_iter(["pid", "name", "create_time", "memory_info"]):
+    for proc in psutil.process_iter(["name"]):
         if (proc.info["name"] or "").lower() != PROCESS_NAME:
             continue
-        clients.append((proc.info, established_conns(proc)))
-    clients.sort(key=lambda c: c[0]["create_time"])
+        try:
+            info = proc.as_dict(["pid", "create_time", "memory_info"])
+        except psutil.NoSuchProcess:
+            continue
+        clients.append((info, established_conns(proc)))
+    clients.sort(key=lambda c: c[0]["create_time"] or 0)
     return clients
 
 
@@ -277,7 +285,13 @@ class NameReader(threading.Thread):
 
     def name(self, pid):
         with self.lock:
-            votes = Counter(n for n in self.reads.get(pid, ()) if n)
+            reads = [n for n in self.reads.get(pid, ()) if n]
+        # The same name several reads in a row wins at once, so a relog to
+        # another character shows without out-voting the old name first.
+        recent = reads[-NAME_SWITCH_VOTES:]
+        if len(recent) == NAME_SWITCH_VOTES and len(set(recent)) == 1:
+            return recent[0]
+        votes = Counter(reads)
         if not votes:
             return None
         name, count = votes.most_common(1)[0]
@@ -367,7 +381,8 @@ class ClientCard(ctk.CTkFrame):
 
     def show(self, index, info, stats, admin, name):
         self.create_time = info["create_time"]
-        started = time.strftime("%H:%M:%S", time.localtime(info["create_time"]))
+        started = ("?" if info["create_time"] is None else
+                   time.strftime("%H:%M:%S", time.localtime(info["create_time"])))
         ram = info["memory_info"].rss / (1024 * 1024) if info["memory_info"] else 0
         if name:
             self.title.configure(text=name, text_color=TEXT)

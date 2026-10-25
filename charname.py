@@ -1,4 +1,4 @@
-"""Read the player's own character name from a M2 client screenshot.
+"""Read the player's own character name from an M2 client screenshot.
 
 The camera keeps your own character in the middle of the screen, with a
 nameplate such as "Lv 105 Cavaler PlayerName" above its head. The name itself
@@ -33,6 +33,9 @@ NAMEPLATE_Y = 0.45
 # Vertical distance between the guild line and the name line, in pixels at
 # a 600 pixel high client.
 GUILD_GAP_MIN, GUILD_GAP_MAX = 8, 25
+# How many words before a name may hold its "Lv" marker: "Lv", the level and
+# a title of up to two words.
+PREFIX_WORDS = 4
 SEARCH_UPSCALE = 3
 WORD_UPSCALE = 6
 WORD_PADDING = 6
@@ -44,9 +47,7 @@ _engine = OcrEngine.try_create_from_user_profile_languages()
 
 
 def _to_software_bitmap(image):
-    rgba = image.convert("RGBA")
-    r, g, b, a = rgba.split()
-    bgra = Image.merge("RGBA", (b, g, r, a)).tobytes()
+    bgra = image.convert("RGBA").tobytes("raw", "BGRA")
     writer = DataWriter()
     writer.write_bytes(bgra)
     return SoftwareBitmap.create_copy_from_buffer(
@@ -64,19 +65,22 @@ def _upscale(image, factor):
 
 
 def ocr_words(image, origin=(0, 0), scale=1):
-    """Return (word, line_text, (left, top, right, bottom)) for each OCR word.
+    """Return (word, prefix, (left, top, right, bottom)) for each OCR word.
 
-    Boxes are mapped back through `scale` and `origin`, so they are in the
-    coordinates of the image `image` was cropped and scaled from.
+    `prefix` is the text of up to PREFIX_WORDS words before it on the same
+    line. Boxes are mapped back through `scale` and `origin`, so they are in
+    the coordinates of the image `image` was cropped and scaled from.
     """
     result = asyncio.run(_recognize(image))
     words = []
     for line in result.lines:
-        for word in line.words:
+        line_words = list(line.words)
+        for index, word in enumerate(line_words):
+            prefix = " ".join(w.text for w in line_words[max(0, index - PREFIX_WORDS):index])
             rect = word.bounding_rect
             left = origin[0] + rect.x / scale
             top = origin[1] + rect.y / scale
-            words.append((word.text, line.text, (
+            words.append((word.text, prefix, (
                 left, top, left + rect.width / scale, top + rect.height / scale)))
     return words
 
@@ -95,7 +99,7 @@ def _find_name_word(screenshot):
                       origin=band[:2], scale=SEARCH_UPSCALE)
 
     centred = [
-        (text, line_text, box) for text, line_text, box in words
+        (text, prefix, box) for text, prefix, box in words
         if abs(_center(box)[0] - width / 2) <= width * CENTER_TOLERANCE
         and "*" not in text  # monster names end in "*"
         and len(re.sub(r"\W", "", text)) >= 3
@@ -104,8 +108,10 @@ def _find_name_word(screenshot):
     gap_max = GUILD_GAP_MAX * height / 600
 
     def is_nameplate(word):
-        text, line_text, box = word
-        if _LEVEL.search(line_text.split(text)[0]):
+        # "Lv" right before the name, past at most a level and a title. Only
+        # nearby words count: OCR can merge a neighbour's nameplate into the line.
+        text, prefix, box = word
+        if _LEVEL.search(prefix):
             return True
         # A guild line above; damage numbers floating above don't count.
         y = _center(box)[1]

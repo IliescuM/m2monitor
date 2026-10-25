@@ -1,6 +1,6 @@
 # m2monitor
 
-A small Windows desktop app that keeps an eye on every M2 client you
+A small Windows desktop app that keeps an eye on every M2 game client you
 have open. For each running client it shows:
 
 - the **character name**, read from the game window with Windows' built-in OCR
