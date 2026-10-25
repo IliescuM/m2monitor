@@ -29,6 +29,17 @@ python -m pip install -r requirements.txt
 python m2monitor.py
 ```
 
+### Build a standalone .exe
+
+```
+python -m pip install pyinstaller
+build.bat
+```
+
+This writes `dist\M2Monitor.exe`, a single file that runs without Python
+installed. Copy it anywhere and make a shortcut to it. Windows SmartScreen or
+antivirus may warn about an unsigned app the first time.
+
 ### Administrator rights
 
 Without admin rights the app shows clients, servers and character names.

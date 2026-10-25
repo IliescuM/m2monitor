@@ -140,8 +140,11 @@ def save_settings(settings):
 
 
 def restart_as_admin():
-    """Relaunch this script elevated. Returns True if the UAC prompt was accepted."""
-    params = subprocess.list2cmdline([os.path.abspath(sys.argv[0])] + sys.argv[1:])
+    """Relaunch this app elevated. Returns True if the UAC prompt was accepted."""
+    args = sys.argv[1:]
+    if not getattr(sys, "frozen", False):  # a built .exe is sys.executable itself
+        args = [os.path.abspath(sys.argv[0])] + args
+    params = subprocess.list2cmdline(args)
     result = ctypes.windll.shell32.ShellExecuteW(
         None, "runas", sys.executable, params, None, 1)
     return result > 32

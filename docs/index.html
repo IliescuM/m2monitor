@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>M2 Monitor</title>
+<meta name="description" content="A free, open-source Windows app that shows every M2 game client you have open: character name, server, latency, traffic, and a one-click disconnect.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1714'/%3E%3Cpath d='M7 23V9l5 7 5-7v14' fill='none' stroke='%236cc3a6' stroke-width='2.6' stroke-linejoin='round'/%3E%3Ccircle cx='23.5' cy='20.5' r='2.6' fill='%23d4ad5a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow reading column; the hero pairs the pitch with a live mock of the app's client cards. */
+:root {
+  --ink: #14211d;
+  --paper: #eef3ef;
+  --panel: #ffffff;
+  --line: #cfdcd5;
+  --muted: #55675f;
+  --jade: #2f7d66;
+  --bronze: #8c6219;
+  --good: #1f7a4a;
+  --warn: #9a6700;
+  --danger: #c23a2b;
+  --card: #1b2421;
+  --card-2: #232e2a;
+  --card-fg: #e6efe9;
+  --card-muted: #93a69d;
+  --display: "Chakra Petch", "Bahnschrift", "Segoe UI", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #e6efe9; --paper: #0e1714; --panel: #15201c; --line: #26352f;
+    --muted: #93a69d; --jade: #6cc3a6; --bronze: #d4ad5a;
+    --good: #4cc47e; --warn: #d9a53a; --danger: #e5574a;
+    --card: #1a2420; --card-2: #212d28;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #e6efe9; --paper: #0e1714; --panel: #15201c; --line: #26352f;
+  --muted: #93a69d; --jade: #6cc3a6; --bronze: #d4ad5a;
+  --good: #4cc47e; --warn: #d9a53a; --danger: #e5574a;
+  --card: #1a2420; --card-2: #212d28;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1rem/1.6 var(--body);
+}
+a { color: var(--jade); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--bronze); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+code { font-family: var(--mono); font-size: 0.92em; }
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Top bar */
+.top { padding-block: 20px; }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 1.15rem var(--display); color: var(--ink); text-decoration: none; letter-spacing: 0.02em; }
+.brand svg { width: 28px; height: 28px; }
+.top nav { display: flex; gap: 20px; font-size: 0.95rem; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover { color: var(--ink); }
+
+/* Hero */
+.hero { padding-block: 40px 72px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 48px; align-items: center; }
+.eyebrow { font: 600 0.78rem var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--bronze); }
+.hero h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; margin-top: 14px; }
+.hero h1 em { font-style: normal; color: var(--jade); }
+.lede { margin-top: 18px; font-size: 1.12rem; color: var(--muted); max-width: 34em; }
+.actions { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 22px; border-radius: 10px;
+  font: 600 1rem var(--display); letter-spacing: 0.02em; text-decoration: none;
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn-primary { background: var(--jade); color: var(--paper); }
+.btn-primary:hover { transform: translateY(-1px); }
+.btn-ghost { color: var(--ink); border: 1px solid var(--line); background: var(--panel); }
+.btn-ghost:hover { border-color: var(--jade); }
+.fine { margin-top: 14px; font: 400 0.85rem var(--mono); color: var(--muted); }
+
+/* App mock */
+.mock {
+  background: var(--card); color: var(--card-fg);
+  border-radius: 14px; padding: 18px;
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.45);
+  border: 1px solid rgb(255 255 255 / 0.06);
+  min-width: 0;
+}
+.mock-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 2px 4px 14px; }
+.mock-head b { font: 700 1.15rem var(--display); }
+.mock-head span { font: 400 0.78rem var(--body); color: var(--card-muted); }
+.pill { font: 600 0.72rem var(--body); color: #4cc47e; background: rgb(255 255 255 / 0.07); padding: 4px 10px; border-radius: 999px; }
+.client {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr) auto; gap: 12px; align-items: center;
+  background: var(--card-2); border-radius: 10px; padding: 12px 14px;
+}
+.client + .client { margin-top: 8px; }
+.who b { display: block; font: 600 0.98rem var(--body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who small { font-size: 0.74rem; color: var(--card-muted); }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 400 0.78rem var(--mono); color: var(--card-muted); font-variant-numeric: tabular-nums; min-width: 0; }
+.stats .srv { color: var(--card-fg); }
+.rtt[data-level="good"] { color: #4cc47e; }
+.rtt[data-level="warn"] { color: #d9a53a; }
+.rtt[data-level="bad"] { color: #e5574a; }
+.dc { font: 600 0.78rem var(--body); color: #fff; background: #c23a2b; border-radius: 7px; padding: 7px 12px; white-space: nowrap; }
+.reading b { color: var(--card-muted); }
+.example-note { margin-top: 12px; font: 400 0.75rem var(--body); color: var(--card-muted); text-align: right; }
+
+/* Sections */
+section.block { padding-block: 64px; border-top: 1px solid var(--line); }
+.block h2 { font-size: clamp(1.6rem, 3.2vw, 2.1rem); }
+.block .intro { margin-top: 12px; color: var(--muted); max-width: 38em; }
+
+.features { margin-top: 36px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 40px; }
+.feature h3 { font-size: 1.12rem; display: flex; align-items: center; gap: 10px; }
+.feature h3 svg { width: 22px; height: 22px; color: var(--jade); flex: none; }
+.feature p { margin-top: 8px; color: var(--muted); }
+
+/* Name-reading explainer */
+.ocr { margin-top: 36px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center; }
+.scene {
+  position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; max-width: 100%;
+  background:
+    radial-gradient(120% 90% at 50% 60%, #3c4a2c 0%, #26301d 55%, #161c12 100%);
+  display: grid; place-items: center;
+}
+.plate { text-align: center; font: 500 clamp(0.8rem, 1.9vw, 0.95rem)/1.5 var(--body); text-shadow: 0 1px 2px #000; transform: translateY(-34%); }
+.plate .guild { color: #e9e4d0; font-size: 0.9em; }
+.plate .line { white-space: nowrap; }
+.plate .lv { color: #8fdc6b; }
+.plate .title { color: #5fc4ff; }
+.plate .name { color: #ffd34d; position: relative; padding: 2px 4px; }
+.plate .name::after {
+  content: ""; position: absolute; inset: -3px -5px;
+  border: 1.5px dashed #6cc3a6; border-radius: 4px;
+  animation: scan 2.4s ease-in-out infinite;
+}
+.hero-figure { position: absolute; left: 50%; top: 52%; width: 14%; aspect-ratio: 1 / 2; transform: translateX(-50%); border-radius: 40% 40% 20% 20%; background: linear-gradient(#9a7a5a, #4a3626); opacity: 0.85; }
+.crosshair { position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed rgb(108 195 166 / 0.45); }
+.scene figcaption { position: absolute; left: 12px; bottom: 10px; font: 400 0.72rem var(--mono); color: #b9c8bf; }
+@keyframes scan { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+.steps { display: grid; gap: 18px; counter-reset: step; }
+.steps li { list-style: none; display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 12px; }
+.steps li::before { counter-increment: step; content: counter(step); font: 700 1.1rem var(--display); color: var(--bronze); }
+.steps { padding: 0; margin: 0; }
+.steps b { display: block; font-weight: 600; }
+.steps span { color: var(--muted); }
+
+/* Install */
+.install { margin-top: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.install ol { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; }
+.install ol li::marker { color: var(--bronze); font-family: var(--display); font-weight: 700; }
+.install h3 { font-size: 1.1rem; margin-bottom: 14px; }
+.note { margin-top: 18px; padding: 14px 16px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; }
+pre { margin: 0; padding: 14px 16px; border-radius: 10px; background: var(--card); color: var(--card-fg); overflow-x: auto; font: 400 0.88rem/1.6 var(--mono); }
+
+/* Tip */
+.tip {
+  margin-top: 8px; display: flex; gap: 28px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 28px;
+}
+.tip .copy { max-width: 36em; min-width: 0; }
+.tip h2 { font-size: 1.6rem; }
+.tip p { margin-top: 8px; color: var(--muted); }
+.btn-tip { background: var(--bronze); color: var(--paper); }
+.btn-tip:hover { transform: translateY(-1px); }
+
+footer { padding-block: 40px 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; }
+footer .wrap { display: grid; gap: 10px; }
+footer .row { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+
+@media (max-width: 860px) {
+  .hero .wrap, .ocr, .install { grid-template-columns: minmax(0, 1fr); }
+  .features { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .hero { padding-block: 16px 56px; }
+}
+@media (max-width: 520px) {
+  .client { grid-template-columns: minmax(0, 1fr) auto; }
+  .stats { grid-column: 1 / -1; grid-row: 2; }
+  .top nav { gap: 14px; }
+  .tip { padding: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plate .name::after { animation: none; opacity: 1; }
+  .btn { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0e1714"/><path d="M7 23V9l5 7 5-7v14" fill="none" stroke="#6cc3a6" stroke-width="2.6" stroke-linejoin="round"/><circle cx="23.5" cy="20.5" r="2.6" fill="#d4ad5a"/></svg>
+      M2 Monitor
+    </a>
+    <nav aria-label="Sections">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#tip">Tip</a>
+      <a href="https://github.com/IliescuM/m2monitor">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Free · Open source · Windows</p>
+        <h1>Every M2 client you have open, <em>on one screen</em>.</h1>
+        <p class="lede">See which character runs in which window, how fast each one talks to the server, and drop a stuck client with one click.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+            Download for Windows
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor">View source</a>
+        </div>
+        <p class="fine">M2Monitor.exe · about 72 MB · Windows 10 or 11 · no install needed</p>
+      </div>
+
+      <div class="mock" role="img" aria-label="Example of the M2 Monitor window with four game clients listed">
+        <div class="mock-head">
+          <div><b>M2 Monitor</b><br><span>4 clients, 4 connected</span></div>
+          <span class="pill">Administrator</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>Ravenshade</b><small>Client 1 · PID 7804</small></div>
+          <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="47">47 ms</span><span>In 2.4 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>LotusBlade</b><small>Client 2 · PID 12496</small></div>
+          <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="69">69 ms</span><span>In 0.1 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>IronMonk</b><small>Client 3 · PID 22628</small></div>
+          <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="128">128 ms</span><span>In 0.3 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client reading">
+          <div class="who"><b>Reading name…</b><small>Client 4 · PID 27532</small></div>
+          <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="46">46 ms</span><span>In 3.2 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <p class="example-note">Example data</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <div class="wrap">
+      <h2>What it shows</h2>
+      <p class="intro">One card per running client, refreshed every second.</p>
+      <div class="features">
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Character names</h3>
+          <p>Reads the name above your character with Windows' built-in text recognition, so you know which window is which.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Latency and traffic</h3>
+          <p>Round-trip time to the server in green, amber or red, plus data in and out for each connection.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v9"/><path d="M6.3 7.5a8 8 0 1 0 11.4 0"/></svg>One-click disconnect</h3>
+          <p>Drops a frozen client's connection without closing the game. Turn the confirm step on or off.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg>Server and process</h3>
+          <p>The server address each client uses, its process ID, start time and memory use.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/></svg>Hands off the game</h3>
+          <p>No injection, no memory reading, no packets sent. Screenshots for name reading stay in memory and are never saved.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg>Open source</h3>
+          <p>MIT licensed Python. Read every line, build the .exe yourself, or send a fix.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <h2>How it finds your name</h2>
+      <p class="intro">The camera keeps your own character in the middle of the screen, so your name is the text centred right above it.</p>
+      <div class="ocr">
+        <figure class="scene" style="margin:0">
+          <span class="crosshair" aria-hidden="true"></span>
+          <span class="hero-figure" aria-hidden="true"></span>
+          <div class="plate">
+            <div class="guild">Silk Road</div>
+            <div class="line"><span class="lv">Lv 105</span> <span class="title">Cavaler</span> <span class="name">Ravenshade</span></div>
+          </div>
+          <figcaption>Name centred on screen, guild above, level to the left</figcaption>
+        </figure>
+        <ol class="steps">
+          <li><div><b>Capture the window</b><span>Windows Graphics Capture takes a picture of each client, even when it is behind other windows.</span></div></li>
+          <li><div><b>Find the nameplate</b><span>Text recognition looks for the centred word with a level marker beside it or a guild name above it.</span></div></li>
+          <li><div><b>Read it again, closer</b><span>The name alone is enlarged and read a second time, which separates it from your title.</span></div></li>
+          <li><div><b>Vote</b><span>Monsters, damage numbers and other players can cover the name in one frame. A name shows only once the same reading comes back more than once.</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="install">
+    <div class="wrap">
+      <h2>Install</h2>
+      <div class="install">
+        <div>
+          <h3>Download the app</h3>
+          <ol>
+            <li><a href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">Download M2Monitor.exe</a> and save it anywhere, for example in Documents.</li>
+            <li>Double-click it. If Windows shows "Windows protected your PC", click <b>More info</b>, then <b>Run anyway</b>. The app is not code-signed, which is normal for free hobby tools.</li>
+            <li>Click <b>Restart as administrator</b> in the window to turn on latency, traffic and disconnect.</li>
+          </ol>
+          <p class="note">Names, servers and process details work without administrator rights. Windows only lets elevated programs read per-connection statistics and reset connections.</p>
+        </div>
+        <div>
+          <h3>Or run from source</h3>
+          <pre><code>git clone https://github.com/IliescuM/m2monitor
+cd m2monitor
+python -m pip install -r requirements.txt
+python m2monitor.py</code></pre>
+          <p class="note">Needs Python 3.10 or newer and an OCR language installed in Windows; English is enough. Run <code>build.bat</code> to make your own .exe.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tip">
+    <div class="wrap">
+      <div class="tip">
+        <div class="copy">
+          <h2>Like it? Buy me a coffee.</h2>
+          <p>M2 Monitor is free and stays free. If it saves you time, a small tip helps me keep improving it. Any amount is appreciated, and none is expected.</p>
+        </div>
+        <a class="btn btn-tip" href="https://paypal.me/IliescuM">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></svg>
+          Tip on PayPal
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <a href="https://github.com/IliescuM/m2monitor">Source on GitHub</a>
+      <a href="https://github.com/IliescuM/m2monitor/releases">All releases</a>
+      <a href="https://github.com/IliescuM/m2monitor/issues">Report a problem</a>
+      <a href="https://github.com/IliescuM/m2monitor/blob/main/LICENSE">MIT License</a>
+    </div>
+    <p>Unofficial fan project, not affiliated with or endorsed by the publishers of M2. Check your game's terms of service before using third-party tools. Use at your own risk.</p>
+  </div>
+</footer>
+
+<script>
+  // Let the example RTT readings drift a little, like the real app refreshing.
+  (function () {
+    var cells = document.querySelectorAll(".rtt");
+    function level(ms) { return ms < 80 ? "good" : ms < 150 ? "warn" : "bad"; }
+    function paint() {
+      cells.forEach(function (cell) {
+        var base = Number(cell.dataset.base);
+        var ms = Math.max(20, Math.round(base + (Math.random() - 0.5) * base * 0.18));
+        cell.textContent = ms + " ms";
+        cell.dataset.level = level(ms);
+      });
+    }
+    paint();
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(paint, 1000);
+  })();
+</script>
+</body>
+</html>

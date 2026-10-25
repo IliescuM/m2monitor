@@ -3,3 +3,6 @@ __pycache__/
 .venv/
 captures/
 .claude/settings.local.json
+build/
+dist/
+*.spec
