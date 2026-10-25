@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>M2 Monitor</title>
+<meta name="description" content="Una app gratuita y de código abierto para Windows que muestra todos tus clientes de M2 abiertos: nombre del personaje, servidor, latencia, tráfico y desconexión con un clic.">
+<link rel="canonical" href="https://m2monitor.app/es/">
+<link rel="alternate" hreflang="en" href="https://m2monitor.app/">
+<link rel="alternate" hreflang="tr" href="https://m2monitor.app/tr/">
+<link rel="alternate" hreflang="ro" href="https://m2monitor.app/ro/">
+<link rel="alternate" hreflang="de" href="https://m2monitor.app/de/">
+<link rel="alternate" hreflang="it" href="https://m2monitor.app/it/">
+<link rel="alternate" hreflang="pl" href="https://m2monitor.app/pl/">
+<link rel="alternate" hreflang="pt" href="https://m2monitor.app/pt/">
+<link rel="alternate" hreflang="es" href="https://m2monitor.app/es/">
+<link rel="alternate" hreflang="hu" href="https://m2monitor.app/hu/">
+<link rel="alternate" hreflang="x-default" href="https://m2monitor.app/">
+<link rel="icon" type="image/png" href="../icon.png">
+<link rel="apple-touch-icon" href="../icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./">
+      <img src="../icon.png" alt="" width="32" height="32">
+      M2 Monitor
+    </a>
+    <nav aria-label="Secciones">
+      <a class="section-link" href="#features">Funciones</a>
+      <a class="section-link" href="#install">Instalación</a>
+      <a class="section-link" href="#tip">Apoyar</a>
+      <a class="section-link" href="https://github.com/IliescuM/m2monitor">GitHub</a>
+      <details class="lang-menu"><summary aria-label="Idioma"><img class="flag" src="../flags/es.svg" alt="" width="22" height="16"><span>ES</span></summary><ul><li><a href="../" hreflang="en" lang="en" data-lang="en"><img class="flag" src="../flags/gb.svg" alt="" width="22" height="16">English</a></li><li><a href="../tr/" hreflang="tr" lang="tr" data-lang="tr"><img class="flag" src="../flags/tr.svg" alt="" width="22" height="16">Türkçe</a></li><li><a href="../ro/" hreflang="ro" lang="ro" data-lang="ro"><img class="flag" src="../flags/ro.svg" alt="" width="22" height="16">Română</a></li><li><a href="../de/" hreflang="de" lang="de" data-lang="de"><img class="flag" src="../flags/de.svg" alt="" width="22" height="16">Deutsch</a></li><li><a href="../it/" hreflang="it" lang="it" data-lang="it"><img class="flag" src="../flags/it.svg" alt="" width="22" height="16">Italiano</a></li><li><a href="../pl/" hreflang="pl" lang="pl" data-lang="pl"><img class="flag" src="../flags/pl.svg" alt="" width="22" height="16">Polski</a></li><li><a href="../pt/" hreflang="pt" lang="pt" data-lang="pt"><img class="flag" src="../flags/pt.svg" alt="" width="22" height="16">Português</a></li><li><a href="../es/" hreflang="es" lang="es" data-lang="es" aria-current="page"><img class="flag" src="../flags/es.svg" alt="" width="22" height="16">Español</a></li><li><a href="../hu/" hreflang="hu" lang="hu" data-lang="hu"><img class="flag" src="../flags/hu.svg" alt="" width="22" height="16">Magyar</a></li></ul></details>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Gratis · Código abierto · Windows</p>
+        <h1>Todos tus clientes de M2 abiertos, <em>en una sola pantalla</em>.</h1>
+        <p class="lede">Mira qué personaje está en cada ventana, la velocidad con la que cada uno se comunica con el servidor, y desconecta un cliente bloqueado con un clic.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+            Descargar para Windows
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor">Ver el código</a>
+        </div>
+        <p class="fine">M2Monitor.exe · unos 72 MB · Windows 10 u 11 · sin instalación</p>
+      </div>
+
+      <div class="mock" role="img" aria-label="Ejemplo de la ventana de M2 Monitor con cuatro clientes del juego">
+        <div class="mock-head">
+          <div><b>M2 Monitor</b><br><span>4 clients, 4 connected</span></div>
+          <span class="pill">Administrator</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>Ravenshade</b><small>Client 1 · PID 7804</small></div>
+          <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="47">47 ms</span><span>In 2.4 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>LotusBlade</b><small>Client 2 · PID 12496</small></div>
+          <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="69">69 ms</span><span>In 0.1 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>IronMonk</b><small>Client 3 · PID 22628</small></div>
+          <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="128">128 ms</span><span>In 0.3 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client reading">
+          <div class="who"><b>Reading name…</b><small>Client 4 · PID 27532</small></div>
+          <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="46">46 ms</span><span>In 3.2 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <p class="example-note">Datos de ejemplo</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <div class="wrap">
+      <h2>Qué muestra</h2>
+      <p class="intro">Una tarjeta por cada cliente abierto, actualizada cada segundo.</p>
+      <div class="features">
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Nombres de personajes</h3>
+          <p>Lee el nombre que aparece sobre tu personaje con el reconocimiento de texto integrado en Windows, para que sepas qué ventana es cuál.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Latencia y tráfico</h3>
+          <p>El tiempo de ida y vuelta al servidor en verde, ámbar o rojo, más los datos de entrada y salida de cada conexión.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v9"/><path d="M6.3 7.5a8 8 0 1 0 11.4 0"/></svg>Desconexión con un clic</h3>
+          <p>Corta la conexión de un cliente congelado sin cerrar el juego. Puedes activar o desactivar la confirmación.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg>Servidor y proceso</h3>
+          <p>La dirección del servidor de cada cliente, su ID de proceso, la hora de inicio y el uso de memoria.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/></svg>No toca el juego</h3>
+          <p>Sin inyección, sin leer la memoria, sin enviar paquetes. Las capturas para leer el nombre se quedan en memoria y nunca se guardan.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg>Código abierto</h3>
+          <p>Python con licencia MIT. Lee cada línea, compila el .exe tú mismo o envía una corrección.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <h2>Cómo encuentra tu nombre</h2>
+      <p class="intro">La cámara mantiene a tu personaje en el centro de la pantalla, así que tu nombre es el texto centrado justo encima.</p>
+      <div class="ocr">
+        <figure class="scene" style="margin:0">
+          <span class="crosshair" aria-hidden="true"></span>
+          <span class="hero-figure" aria-hidden="true"></span>
+          <div class="plate">
+            <div class="guild">Silk Road</div>
+            <div class="line"><span class="lv">Lv 105</span> <span class="title">Cavaler</span> <span class="name">Ravenshade</span></div>
+          </div>
+          <figcaption>Nombre centrado, gremio arriba, nivel a la izquierda</figcaption>
+        </figure>
+        <ol class="steps">
+          <li><div><b>Captura la ventana</b><span>Windows Graphics Capture toma una imagen de cada cliente, incluso si su ventana está detrás de otras.</span></div></li>
+          <li><div><b>Encuentra la placa del nombre</b><span>El reconocimiento de texto busca la palabra centrada con el nivel al lado o el nombre del gremio encima.</span></div></li>
+          <li><div><b>Vuelve a leerlo de cerca</b><span>Solo el nombre se amplía y se lee por segunda vez, lo que lo separa de tu título.</span></div></li>
+          <li><div><b>Votación</b><span>Los monstruos, los números de daño y otros jugadores pueden tapar el nombre en un fotograma. Un nombre solo aparece cuando la misma lectura se repite más de una vez.</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="install">
+    <div class="wrap">
+      <h2>Instalación</h2>
+      <div class="install">
+        <div>
+          <h3>Descarga la app</h3>
+          <ol>
+            <li><a href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">Descarga M2Monitor.exe</a> y guárdalo donde quieras, por ejemplo en Documentos.</li>
+            <li>Haz doble clic. Si Windows muestra “Windows protegió su PC”, haz clic en <b>Más información</b> y luego en <b>Ejecutar de todas formas</b>. La app no está firmada digitalmente, algo normal en las herramientas gratuitas hechas por afición.</li>
+            <li>Haz clic en <b>Restart as administrator</b> en la ventana para activar la latencia, el tráfico y la desconexión.</li>
+          </ol>
+          <p class="note">Los nombres, servidores y datos de procesos funcionan sin permisos de administrador. Windows solo permite a los programas con permisos de administrador leer las estadísticas de cada conexión y reiniciarlas.</p>
+        </div>
+        <div>
+          <h3>O ejecútalo desde el código fuente</h3>
+          <pre><code>git clone https://github.com/IliescuM/m2monitor
+cd m2monitor
+python -m pip install -r requirements.txt
+python m2monitor.py</code></pre>
+          <p class="note">Necesitas Python 3.10 o posterior y un idioma con reconocimiento de texto instalado en Windows; con el inglés basta. Ejecuta <code>build.bat</code> para crear tu propio .exe.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tip">
+    <div class="wrap">
+      <div class="tip">
+        <div class="copy">
+          <h2>¿Te gusta? Invítame a un café.</h2>
+          <p>M2 Monitor es gratis y lo seguirá siendo. Si te ahorra tiempo, una pequeña propina me ayuda a seguir mejorándolo. Cualquier cantidad se agradece, y ninguna es obligatoria.</p>
+        </div>
+        <a class="btn btn-tip" href="https://paypal.me/IliescuM">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></svg>
+          Apoyar con PayPal
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <a href="https://github.com/IliescuM/m2monitor">Código fuente en GitHub</a>
+      <a href="https://github.com/IliescuM/m2monitor/releases">Todas las versiones</a>
+      <a href="https://github.com/IliescuM/m2monitor/issues">Informar de un problema</a>
+      <a href="https://github.com/IliescuM/m2monitor/blob/main/LICENSE">Licencia MIT</a>
+    </div>
+    <p>Proyecto no oficial hecho por fans, sin relación ni respaldo de los editores de M2. Revisa los términos de servicio de tu juego antes de usar herramientas de terceros. Úsalo bajo tu propia responsabilidad.</p>
+  </div>
+</footer>
+
+<script src="../site.js"></script>
+</body>
+</html>

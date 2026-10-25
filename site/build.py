@@ -13,6 +13,9 @@ DOCS = os.path.join(HERE, "..", "docs")
 BASE_URL = "https://m2monitor.app/"
 DOWNLOAD_URL = "https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe"
 DEFAULT = "en"
+# Flag image in docs/flags/ for each language.
+FLAGS = {"en": "gb", "tr": "tr", "ro": "ro", "de": "de", "it": "it",
+         "pl": "pl", "pt": "pt", "es": "es", "hu": "hu"}
 
 
 def page_url(lang):
@@ -41,12 +44,17 @@ def main():
 
     for lang in langs:
         root = "" if lang == DEFAULT else "../"
-        langnav = "".join(
-            f'<a href="{root}{"" if other == DEFAULT else other + "/"}" hreflang="{other}" '
-            f'lang="{other}" data-lang="{other}" title="{strings[other]["lang_name"]}"'
+        def flag(code):
+            return f'<img class="flag" src="{root}flags/{FLAGS[code]}.svg" alt="" width="22" height="16">'
+
+        items = "".join(
+            f'<li><a href="{root}{"" if other == DEFAULT else other + "/"}" hreflang="{other}" '
+            f'lang="{other}" data-lang="{other}"'
             + (' aria-current="page"' if other == lang else "")
-            + f">{other.upper()}</a>"
+            + f'>{flag(other)}{strings[other]["lang_name"]}</a></li>'
             for other in langs)
+        langnav = (f'<details class="lang-menu"><summary aria-label="{strings[lang]["lang_label"]}">'
+                   f'{flag(lang)}<span>{lang.upper()}</span></summary><ul>{items}</ul></details>')
         values = dict(strings[lang], lang=lang, root=root, canonical=page_url(lang),
                       hreflang=hreflang, langnav=langnav)
         html = re.sub(r"\{\{(\w+)\}\}", lambda m: values[m.group(1)], template)

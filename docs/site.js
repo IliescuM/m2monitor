@@ -1,7 +1,7 @@
 (function () {
   // Language: a first visit to the English page follows the browser's
   // language; a choice made in the switcher is remembered and wins.
-  var LANGS = ["en", "tr", "ro", "de"];
+  var LANGS = ["en", "tr", "ro", "de", "it", "pl", "pt", "es", "hu"];
   var KEY = "m2monitor-lang";
   var page = document.documentElement.lang;
 
@@ -15,6 +15,17 @@
   document.querySelectorAll("[data-lang]").forEach(function (link) {
     link.addEventListener("click", function () { save(link.dataset.lang); });
   });
+
+  // Close the language menu on an outside click or Escape.
+  var menu = document.querySelector(".lang-menu");
+  if (menu) {
+    document.addEventListener("click", function (e) {
+      if (menu.open && !menu.contains(e.target)) menu.open = false;
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && menu.open) { menu.open = false; menu.querySelector("summary").focus(); }
+    });
+  }
 
   if (page === "en" && !saved()) {
     var prefs = navigator.languages || [navigator.language || ""];

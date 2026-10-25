@@ -77,10 +77,11 @@ The choice is saved in `%APPDATA%\m2monitor\settings.json`.
 ## Website
 
 The site at [m2monitor.app](https://m2monitor.app) is served by GitHub Pages
-from `docs/`. Its pages are generated in English, Turkish, Romanian and
-German: edit `site/template.html` or `site/strings.json`, then run
-`python site/build.py`. To add a language, add its block to
-`site/strings.json` and its code to `LANGS` in `docs/site.js`.
+from `docs/`. Its pages are generated in English, Turkish, Romanian, German,
+Italian, Polish, Portuguese, Spanish and Hungarian: edit `site/template.html`
+or `site/strings.json`, then run `python site/build.py`. To add a language,
+add its block to `site/strings.json`, its flag to `docs/flags/` and `FLAGS` in
+`site/build.py`, and its code to `LANGS` in `docs/site.js`.
 
 ## Disclaimer
 
