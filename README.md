@@ -1,5 +1,8 @@
 # m2monitor
 
+**Website:** [m2monitor.app](https://m2monitor.app) ·
+**Download:** [M2Monitor.exe](https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe)
+
 A small Windows desktop app that keeps an eye on every M2 game client you
 have open. For each running client it shows:
 
