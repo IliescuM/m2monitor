@@ -74,6 +74,14 @@ sent anywhere.
 Untick **Confirm before disconnect** in the header to disconnect on one click.
 The choice is saved in `%APPDATA%\m2monitor\settings.json`.
 
+## Website
+
+The site at [m2monitor.app](https://m2monitor.app) is served by GitHub Pages
+from `docs/`. Its pages are generated in English, Turkish, Romanian and
+German: edit `site/template.html` or `site/strings.json`, then run
+`python site/build.py`. To add a language, add its block to
+`site/strings.json` and its code to `LANGS` in `docs/site.js`.
+
 ## Disclaimer
 
 This is an unofficial fan project, not affiliated with or endorsed by the

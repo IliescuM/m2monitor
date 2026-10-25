@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>M2 Monitor</title>
+<meta name="description" content="Açık olan tüm M2 oyun istemcilerini gösteren ücretsiz, açık kaynaklı bir Windows uygulaması: karakter adı, sunucu, gecikme, trafik ve tek tıkla bağlantı kesme.">
+<link rel="canonical" href="https://m2monitor.app/tr/">
+<link rel="alternate" hreflang="en" href="https://m2monitor.app/">
+<link rel="alternate" hreflang="tr" href="https://m2monitor.app/tr/">
+<link rel="alternate" hreflang="ro" href="https://m2monitor.app/ro/">
+<link rel="alternate" hreflang="de" href="https://m2monitor.app/de/">
+<link rel="alternate" hreflang="x-default" href="https://m2monitor.app/">
+<link rel="icon" type="image/png" href="../icon.png">
+<link rel="apple-touch-icon" href="../icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./">
+      <img src="../icon.png" alt="" width="32" height="32">
+      M2 Monitor
+    </a>
+    <nav aria-label="Bölümler">
+      <a class="section-link" href="#features">Özellikler</a>
+      <a class="section-link" href="#install">Kurulum</a>
+      <a class="section-link" href="#tip">Destek</a>
+      <a class="section-link" href="https://github.com/IliescuM/m2monitor">GitHub</a>
+      <span class="langs"><a href="../" hreflang="en" lang="en" data-lang="en" title="English">EN</a><a href="../tr/" hreflang="tr" lang="tr" data-lang="tr" title="Türkçe" aria-current="page">TR</a><a href="../ro/" hreflang="ro" lang="ro" data-lang="ro" title="Română">RO</a><a href="../de/" hreflang="de" lang="de" data-lang="de" title="Deutsch">DE</a></span>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Ücretsiz · Açık kaynak · Windows</p>
+        <h1>Açık olan tüm M2 istemcilerin <em>tek ekranda</em>.</h1>
+        <p class="lede">Hangi karakterin hangi pencerede çalıştığını, her birinin sunucuyla ne kadar hızlı haberleştiğini gör ve takılan bir istemcinin bağlantısını tek tıkla kes.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+            Windows için indir
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor">Kaynak kodu</a>
+        </div>
+        <p class="fine">M2Monitor.exe · yaklaşık 72 MB · Windows 10 veya 11 · kurulum gerektirmez</p>
+      </div>
+
+      <div class="mock" role="img" aria-label="Dört oyun istemcisinin listelendiği M2 Monitor penceresi örneği">
+        <div class="mock-head">
+          <div><b>M2 Monitor</b><br><span>4 clients, 4 connected</span></div>
+          <span class="pill">Administrator</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>Ravenshade</b><small>Client 1 · PID 7804</small></div>
+          <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="47">47 ms</span><span>In 2.4 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>LotusBlade</b><small>Client 2 · PID 12496</small></div>
+          <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="69">69 ms</span><span>In 0.1 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client">
+          <div class="who"><b>IronMonk</b><small>Client 3 · PID 22628</small></div>
+          <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="128">128 ms</span><span>In 0.3 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <div class="client reading">
+          <div class="who"><b>Reading name…</b><small>Client 4 · PID 27532</small></div>
+          <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="46">46 ms</span><span>In 3.2 KB/s</span></div>
+          <span class="dc">Disconnect</span>
+        </div>
+        <p class="example-note">Örnek veriler</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <div class="wrap">
+      <h2>Neler gösterir</h2>
+      <p class="intro">Çalışan her istemci için bir kart, her saniye güncellenir.</p>
+      <div class="features">
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Karakter adları</h3>
+          <p>Karakterinin üstündeki adı Windows'un yerleşik metin tanıma özelliğiyle okur; böylece hangi pencerenin hangisi olduğunu bilirsin.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Gecikme ve trafik</h3>
+          <p>Sunucuya gidiş-dönüş süresi yeşil, sarı veya kırmızı renkte; ayrıca her bağlantı için gelen ve giden veri.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v9"/><path d="M6.3 7.5a8 8 0 1 0 11.4 0"/></svg>Tek tıkla bağlantı kesme</h3>
+          <p>Oyunu kapatmadan donmuş bir istemcinin bağlantısını keser. Onay adımını açıp kapatabilirsin.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg>Sunucu ve işlem</h3>
+          <p>Her istemcinin kullandığı sunucu adresi, işlem kimliği (PID), başlama saati ve bellek kullanımı.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/></svg>Oyuna dokunmaz</h3>
+          <p>Enjeksiyon yok, bellek okuma yok, paket gönderme yok. Ad okuma için alınan ekran görüntüleri yalnızca bellekte kalır ve asla kaydedilmez.</p>
+        </div>
+        <div class="feature">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg>Açık kaynak</h3>
+          <p>MIT lisanslı Python. Her satırı okuyabilir, .exe dosyasını kendin derleyebilir veya bir düzeltme gönderebilirsin.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <h2>Adını nasıl bulur</h2>
+      <p class="intro">Kamera kendi karakterini ekranın ortasında tutar; bu yüzden adın, karakterinin hemen üstünde ortalanmış yazıdır.</p>
+      <div class="ocr">
+        <figure class="scene" style="margin:0">
+          <span class="crosshair" aria-hidden="true"></span>
+          <span class="hero-figure" aria-hidden="true"></span>
+          <div class="plate">
+            <div class="guild">Silk Road</div>
+            <div class="line"><span class="lv">Lv 105</span> <span class="title">Cavaler</span> <span class="name">Ravenshade</span></div>
+          </div>
+          <figcaption>Ad ekranda ortalı, lonca üstte, seviye solda</figcaption>
+        </figure>
+        <ol class="steps">
+          <li><div><b>Pencereyi yakala</b><span>Windows Graphics Capture her istemcinin görüntüsünü alır, pencere başka pencerelerin arkasında olsa bile.</span></div></li>
+          <li><div><b>İsim plakasını bul</b><span>Metin tanıma, yanında seviye işareti ya da üstünde lonca adı olan ortalanmış kelimeyi arar.</span></div></li>
+          <li><div><b>Yakından tekrar oku</b><span>Yalnızca ad büyütülür ve ikinci kez okunur; bu da onu unvanından ayırır.</span></div></li>
+          <li><div><b>Oylama</b><span>Canavarlar, hasar sayıları ve diğer oyuncular tek bir karede adı kapatabilir. Ad, ancak aynı okuma birden fazla kez gelince gösterilir.</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="install">
+    <div class="wrap">
+      <h2>Kurulum</h2>
+      <div class="install">
+        <div>
+          <h3>Uygulamayı indir</h3>
+          <ol>
+            <li><a href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">M2Monitor.exe dosyasını indir</a> ve istediğin bir yere kaydet, örneğin Belgeler klasörüne.</li>
+            <li>Dosyaya çift tıkla. Windows “Windows kişisel bilgisayarınızı korudu” uyarısı gösterirse önce <b>Ek bilgi</b>, sonra <b>Yine de çalıştır</b> seçeneğine tıkla. Uygulama kod imzalı değil; ücretsiz hobi araçlarında bu normaldir.</li>
+            <li>Gecikme, trafik ve bağlantı kesmeyi açmak için penceredeki <b>Restart as administrator</b> düğmesine tıkla.</li>
+          </ol>
+          <p class="note">Adlar, sunucular ve işlem bilgileri yönetici hakları olmadan da çalışır. Windows, bağlantı istatistiklerini okuma ve bağlantıları sıfırlama iznini yalnızca yönetici olarak çalışan programlara verir.</p>
+        </div>
+        <div>
+          <h3>Ya da kaynaktan çalıştır</h3>
+          <pre><code>git clone https://github.com/IliescuM/m2monitor
+cd m2monitor
+python -m pip install -r requirements.txt
+python m2monitor.py</code></pre>
+          <p class="note">Python 3.10 veya üstü ve Windows'ta yüklü, metin tanıma destekli bir dil gerekir; İngilizce yeterlidir. Kendi .exe dosyanı oluşturmak için <code>build.bat</code> çalıştır.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tip">
+    <div class="wrap">
+      <div class="tip">
+        <div class="copy">
+          <h2>Beğendin mi? Bana bir kahve ısmarla.</h2>
+          <p>M2 Monitor ücretsizdir ve ücretsiz kalacak. Sana zaman kazandırıyorsa, küçük bir bahşiş onu geliştirmeye devam etmeme yardımcı olur. Her miktar için teşekkürler; hiçbiri zorunlu değil.</p>
+        </div>
+        <a class="btn btn-tip" href="https://paypal.me/IliescuM">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></svg>
+          PayPal ile destek ol
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <a href="https://github.com/IliescuM/m2monitor">GitHub'da kaynak kodu</a>
+      <a href="https://github.com/IliescuM/m2monitor/releases">Tüm sürümler</a>
+      <a href="https://github.com/IliescuM/m2monitor/issues">Sorun bildir</a>
+      <a href="https://github.com/IliescuM/m2monitor/blob/main/LICENSE">MIT Lisansı</a>
+    </div>
+    <p>Resmî olmayan bir hayran projesidir; M2'nin yayıncılarıyla bağlantılı değildir ve onlar tarafından desteklenmez. Üçüncü taraf araçları kullanmadan önce oyunun kullanım koşullarını kontrol et. Kullanım riski sana aittir.</p>
+  </div>
+</footer>
+
+<script src="../site.js"></script>
+</body>
+</html>
