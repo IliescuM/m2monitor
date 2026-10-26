@@ -55,7 +55,11 @@
     "footer_issues": "Report a problem",
     "footer_license": "MIT License",
     "footer_disclaimer": "Unofficial fan project, not affiliated with or endorsed by the publishers of M2. Check your game's terms of service before using third-party tools. Use at your own risk.",
-    "lang_label": "Language"
+    "lang_label": "Language",
+    "fb_h2": "Tell me what you think",
+    "fb_p": "Ideas, bugs, or a character name it keeps misreading: every report helps. You need a free GitHub account.",
+    "fb_idea": "Suggest an idea",
+    "fb_bug": "Report a bug"
   },
   "tr": {
     "lang_name": "Türkçe",
@@ -113,7 +117,11 @@
     "footer_issues": "Sorun bildir",
     "footer_license": "MIT Lisansı",
     "footer_disclaimer": "Resmî olmayan bir hayran projesidir; M2'nin yayıncılarıyla bağlantılı değildir ve onlar tarafından desteklenmez. Üçüncü taraf araçları kullanmadan önce oyunun kullanım koşullarını kontrol et. Kullanım riski sana aittir.",
-    "lang_label": "Dil"
+    "lang_label": "Dil",
+    "fb_h2": "Ne düşündüğünü söyle",
+    "fb_p": "Fikirler, hatalar ya da sürekli yanlış okunan bir karakter adı: her bildirim işe yarar. Ücretsiz bir GitHub hesabı gerekir.",
+    "fb_idea": "Fikir öner",
+    "fb_bug": "Hata bildir"
   },
   "ro": {
     "lang_name": "Română",
@@ -171,7 +179,11 @@
     "footer_issues": "Raportează o problemă",
     "footer_license": "Licența MIT",
     "footer_disclaimer": "Proiect neoficial făcut de fani, neafiliat și neaprobat de editorii M2. Verifică termenii și condițiile jocului înainte să folosești programe terțe. Folosești pe propria răspundere.",
-    "lang_label": "Limbă"
+    "lang_label": "Limbă",
+    "fb_h2": "Spune-mi ce părere ai",
+    "fb_p": "Idei, bug-uri sau un nume de personaj pe care îl citește mereu greșit: orice raport ajută. Ai nevoie de un cont GitHub gratuit.",
+    "fb_idea": "Propune o idee",
+    "fb_bug": "Raportează un bug"
   },
   "de": {
     "lang_name": "Deutsch",
@@ -229,7 +241,11 @@
     "footer_issues": "Problem melden",
     "footer_license": "MIT-Lizenz",
     "footer_disclaimer": "Inoffizielles Fanprojekt, nicht mit den Publishern von M2 verbunden oder von ihnen unterstützt. Prüfe vor der Nutzung von Drittanbieter-Tools die Nutzungsbedingungen deines Spiels. Nutzung auf eigene Gefahr.",
-    "lang_label": "Sprache"
+    "lang_label": "Sprache",
+    "fb_h2": "Sag mir deine Meinung",
+    "fb_p": "Ideen, Fehler oder ein Charaktername, der ständig falsch gelesen wird: Jede Meldung hilft. Du brauchst ein kostenloses GitHub-Konto.",
+    "fb_idea": "Idee vorschlagen",
+    "fb_bug": "Fehler melden"
   },
   "it": {
     "lang_name": "Italiano",
@@ -287,7 +303,11 @@
     "footer_issues": "Segnala un problema",
     "footer_license": "Licenza MIT",
     "footer_disclaimer": "Progetto non ufficiale creato da fan, non affiliato né approvato dagli editori di M2. Controlla i termini di servizio del gioco prima di usare strumenti di terze parti. Uso a tuo rischio.",
-    "lang_label": "Lingua"
+    "lang_label": "Lingua",
+    "fb_h2": "Dimmi cosa ne pensi",
+    "fb_p": "Idee, bug o un nome di personaggio che legge sempre male: ogni segnalazione aiuta. Serve un account GitHub gratuito.",
+    "fb_idea": "Proponi un'idea",
+    "fb_bug": "Segnala un bug"
   },
   "pl": {
     "lang_name": "Polski",
@@ -345,7 +365,11 @@
     "footer_issues": "Zgłoś problem",
     "footer_license": "Licencja MIT",
     "footer_disclaimer": "Nieoficjalny projekt fanowski, niepowiązany z wydawcami M2 ani przez nich niepopierany. Przed użyciem narzędzi firm trzecich sprawdź regulamin swojej gry. Używasz na własne ryzyko.",
-    "lang_label": "Język"
+    "lang_label": "Język",
+    "fb_h2": "Daj znać, co myślisz",
+    "fb_p": "Pomysły, błędy albo nazwa postaci, którą ciągle źle odczytuje: każde zgłoszenie pomaga. Potrzebne jest darmowe konto GitHub.",
+    "fb_idea": "Zaproponuj pomysł",
+    "fb_bug": "Zgłoś błąd"
   },
   "pt": {
     "lang_name": "Português",
@@ -403,7 +427,11 @@
     "footer_issues": "Reportar um problema",
     "footer_license": "Licença MIT",
     "footer_disclaimer": "Projeto não oficial feito por fãs, sem ligação nem aprovação dos editores de M2. Confirma os termos de serviço do teu jogo antes de usar ferramentas de terceiros. Usa por tua conta e risco.",
-    "lang_label": "Idioma"
+    "lang_label": "Idioma",
+    "fb_h2": "Diz-me o que achas",
+    "fb_p": "Ideias, erros ou um nome de personagem que lê sempre mal: cada relato ajuda. Precisas de uma conta GitHub gratuita.",
+    "fb_idea": "Sugerir uma ideia",
+    "fb_bug": "Reportar um erro"
   },
   "es": {
     "lang_name": "Español",
@@ -461,7 +489,11 @@
     "footer_issues": "Informar de un problema",
     "footer_license": "Licencia MIT",
     "footer_disclaimer": "Proyecto no oficial hecho por fans, sin relación ni respaldo de los editores de M2. Revisa los términos de servicio de tu juego antes de usar herramientas de terceros. Úsalo bajo tu propia responsabilidad.",
-    "lang_label": "Idioma"
+    "lang_label": "Idioma",
+    "fb_h2": "Cuéntame qué te parece",
+    "fb_p": "Ideas, errores o un nombre de personaje que siempre lee mal: cada aviso ayuda. Necesitas una cuenta gratuita de GitHub.",
+    "fb_idea": "Proponer una idea",
+    "fb_bug": "Informar de un error"
   },
   "hu": {
     "lang_name": "Magyar",
@@ -519,6 +551,10 @@
     "footer_issues": "Hiba jelentése",
     "footer_license": "MIT-licenc",
     "footer_disclaimer": "Nem hivatalos rajongói projekt, nem kapcsolódik az M2 kiadóihoz, és ők nem támogatják. Harmadik féltől származó eszközök használata előtt nézd meg a játék felhasználási feltételeit. Használat saját felelősségre.",
-    "lang_label": "Nyelv"
+    "lang_label": "Nyelv",
+    "fb_h2": "Mondd el a véleményed",
+    "fb_p": "Ötletek, hibák vagy egy karakternév, amit mindig rosszul olvas be: minden visszajelzés segít. Ehhez egy ingyenes GitHub-fiók kell.",
+    "fb_idea": "Ötlet beküldése",
+    "fb_bug": "Hiba bejelentése"
   }
 }

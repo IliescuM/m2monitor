@@ -1,0 +1,51 @@
+name: Bug report
+description: Something in M2 Monitor does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Please leave out character
+        names, server addresses or screenshots you do not want to be public.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part?
+      options:
+        - Character name (wrong or never shows)
+        - Latency / traffic
+        - Disconnect button
+        - Client list (missing or extra clients)
+        - App does not start
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: admin
+    attributes:
+      label: Was the app running as administrator?
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: e.g. Windows 11 24H2
+  - type: input
+    id: version
+    attributes:
+      label: M2 Monitor version
+      placeholder: e.g. 1.0.0, or "from source"
+  - type: input
+    id: clients
+    attributes:
+      label: How many game clients were open?

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Suggest an idea
+    url: https://github.com/IliescuM/m2monitor/discussions/new?category=ideas
+    about: Features or changes you would like to see.
+  - name: Ask a question
+    url: https://github.com/IliescuM/m2monitor/discussions/new?category=q-a
+    about: Help with setup or using the app.

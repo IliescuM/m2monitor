@@ -19,8 +19,14 @@ import subprocess
 import sys
 import threading
 import time
+import webbrowser
 from collections import Counter, deque
 from ctypes import wintypes
+
+# numpy (pulled in by windows-capture) otherwise reserves OpenBLAS buffers for
+# every CPU thread, about 600 MB on a many-core PC; this app needs none of it.
+# Must be set before numpy is first imported.
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 
 import customtkinter as ctk
 import psutil
@@ -44,6 +50,7 @@ SETTINGS_PATH = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")),
 ICON_PATH = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))),
                          "assets", "icon.ico")
 APP_ID = "IliescuM.M2Monitor"
+FEEDBACK_URL = "https://github.com/IliescuM/m2monitor/discussions"
 
 MIB_TCP_STATE_ESTAB = 5
 MIB_TCP_STATE_DELETE_TCB = 12
@@ -308,15 +315,18 @@ class NameReader(threading.Thread):
         while True:
             with self.lock:
                 pids = sorted(self.pids)
+            windows = set()
             for pid in pids:
                 try:
-                    screenshot = capture.capture_window(capture.main_window(pid))
-                    name = charname.read_character_name(screenshot)
+                    hwnd = capture.main_window(pid)
+                    windows.add(hwnd)
+                    name = charname.read_character_name(capture.capture_window(hwnd))
                 except Exception:  # a client closing mid-read must not stop the thread
                     name = None
                 with self.lock:
                     if pid in self.pids:
                         self.reads.setdefault(pid, deque(maxlen=NAME_HISTORY)).append(name)
+            capture.keep_streams(windows)
             time.sleep(NAME_READ_SECONDS)
 
 
@@ -494,21 +504,26 @@ class MonitorApp(ctk.CTk):
         self.summary = ctk.CTkLabel(header, text_color=MUTED,
                                     font=ctk.CTkFont(FONT_FAMILY, 13))
         self.summary.grid(row=1, column=0, columnspan=2, sticky="w")
+        ctk.CTkButton(header, text="Feedback", width=90, fg_color="transparent",
+                      border_width=1, border_color=PILL, text_color=TEXT,
+                      hover_color=PILL, font=ctk.CTkFont(FONT_FAMILY, 13),
+                      command=lambda: webbrowser.open(FEEDBACK_URL)).grid(
+            row=0, column=2, rowspan=2, sticky="e", padx=(16, 0))
         ctk.CTkCheckBox(header, text="Confirm before disconnect",
                         variable=self.confirm_disconnect,
                         command=self.save_confirm_setting,
                         font=ctk.CTkFont(FONT_FAMILY, 13)).grid(
-            row=0, column=1, rowspan=2, sticky="e", padx=16)
+            row=0, column=3, rowspan=2, sticky="e", padx=16)
         if self.admin:
             ctk.CTkLabel(header, text="  Administrator  ", fg_color=PILL,
                          corner_radius=12, text_color=GOOD,
                          font=ctk.CTkFont(FONT_FAMILY, 12, "bold")).grid(
-                row=0, column=2, rowspan=2, sticky="e")
+                row=0, column=4, rowspan=2, sticky="e")
         else:
             ctk.CTkButton(header, text="Restart as administrator",
                           font=ctk.CTkFont(FONT_FAMILY, 13),
                           command=self.elevate).grid(
-                row=0, column=2, rowspan=2, sticky="e")
+                row=0, column=4, rowspan=2, sticky="e")
 
         self.list = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.list.grid(row=1, column=0, sticky="nsew", padx=12)

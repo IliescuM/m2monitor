@@ -192,6 +192,8 @@ pre { margin: 0; padding: 14px 16px; border-radius: 10px; background: var(--card
   background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 28px;
 }
 .tip .copy { max-width: 36em; min-width: 0; }
+.tip .actions { margin-top: 0; }
+#feedback + #tip { border-top: 0; padding-top: 0; }
 .tip h2 { font-size: 1.6rem; }
 .tip p { margin-top: 8px; color: var(--muted); }
 .btn-tip { background: var(--bronze); color: var(--paper); }

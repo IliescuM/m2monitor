@@ -4,7 +4,8 @@ Uses Windows Graphics Capture (through the windows-capture package), which
 reads the window's own DirectX output from the compositor. Unlike
 PrintWindow it works for games, for windows covered by other windows, and
 for clients running as administrator. Minimized windows produce no frames
-and return None.
+and return None. capture_window keeps one session open per window; call
+keep_streams to close the ones whose windows are gone.
 """
 import ctypes
 import threading
@@ -78,35 +79,73 @@ def client_box(hwnd):
     return left, top, left + client.right, top + client.bottom
 
 
-def grab_frame(hwnd):
-    """Return one BGRA frame of the window as a numpy array, or None."""
-    result = {}
-    arrived = threading.Event()
-    session = WindowsCapture(cursor_capture=False, draw_border=False,
-                             window_hwnd=hwnd)
+class WindowStream:
+    """One capture session kept open on a window, handing out frames on request.
 
-    @session.event
-    def on_frame_arrived(frame, control):
-        result["pixels"] = frame.frame_buffer.copy()
-        control.stop()
-        arrived.set()
+    Starting a new capture session for every screenshot leaks about one frame
+    of native memory per session (~2 MB at 800x600), which adds up to
+    gigabytes within hours, so each window keeps a single session.
+    """
 
-    @session.event
-    def on_closed():
-        arrived.set()
+    def __init__(self, hwnd):
+        self.closed = False
+        self._want = False
+        self._pixels = None
+        self._arrived = threading.Event()
+        session = WindowsCapture(cursor_capture=False, draw_border=False,
+                                 window_hwnd=hwnd)
 
-    control = session.start_free_threaded()
-    arrived.wait(FRAME_TIMEOUT_SECONDS)
-    control.stop()
-    return result.get("pixels")
+        @session.event
+        def on_frame_arrived(frame, control):
+            # Frames arrive many times a second; copy only the one asked for.
+            if self._want:
+                self._pixels = frame.frame_buffer.copy()
+                self._want = False
+                self._arrived.set()
+
+        @session.event
+        def on_closed():
+            self.closed = True
+            self._arrived.set()
+
+        self._control = session.start_free_threaded()
+
+    def grab(self):
+        """Return the next BGRA frame as a numpy array, or None."""
+        self._pixels = None
+        self._arrived.clear()
+        self._want = True
+        self._arrived.wait(FRAME_TIMEOUT_SECONDS)
+        self._want = False
+        return self._pixels
+
+    def stop(self):
+        try:
+            self._control.stop()
+        except Exception:  # already finished, e.g. the window closed
+            pass
+
+
+_streams = {}  # hwnd -> WindowStream
+
+
+def keep_streams(hwnds):
+    """Stop the capture sessions of windows not in `hwnds`."""
+    for hwnd in list(_streams):
+        if hwnd not in hwnds:
+            _streams.pop(hwnd).stop()
 
 
 def capture_window(hwnd):
     if not hwnd or user32.IsIconic(hwnd):
         return None
     try:
-        pixels = grab_frame(hwnd)
+        stream = _streams.get(hwnd)
+        if stream is None or stream.closed:
+            stream = _streams[hwnd] = WindowStream(hwnd)
+        pixels = stream.grab()
     except Exception:  # windows-capture raises plain Exception for closed windows
+        _streams.pop(hwnd, None)
         return None
     box = client_box(hwnd)
     if pixels is None or box is None:
