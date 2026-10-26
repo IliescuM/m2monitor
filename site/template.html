@@ -26,7 +26,7 @@
       <a class="section-link" href="#features">{{nav_features}}</a>
       <a class="section-link" href="#install">{{nav_install}}</a>
       <a class="section-link" href="#tip">{{nav_tip}}</a>
-      <a class="section-link" href="https://github.com/IliescuM/m2monitor">GitHub</a>
+      <a class="section-link" href="{repo}">GitHub</a>
       {{langnav}}
     </nav>
   </div>
@@ -44,7 +44,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
             {{btn_download}}
           </a>
-          <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor">{{btn_source}}</a>
+          <a class="btn btn-ghost" href="{repo}">{{btn_source}}</a>
         </div>
         <p class="fine">{{fine}}</p>
       </div>
@@ -151,7 +151,7 @@
         </div>
         <div>
           <h3>{{src_h3}}</h3>
-          <pre><code>git clone https://github.com/IliescuM/m2monitor
+          <pre><code>git clone {repo}
 cd m2monitor
 python -m pip install -r requirements.txt
 python m2monitor.py</code></pre>
@@ -169,8 +169,8 @@ python m2monitor.py</code></pre>
           <p>{{fb_p}}</p>
         </div>
         <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/IliescuM/m2monitor/discussions/new?category=ideas">{{fb_idea}}</a>
-          <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor/issues/new?template=bug_report.yml">{{fb_bug}}</a>
+          <a class="btn btn-primary" href="{repo}/discussions/new?category=ideas">{{fb_idea}}</a>
+          <a class="btn btn-ghost" href="{repo}/issues/new?template=bug_report.yml">{{fb_bug}}</a>
         </div>
       </div>
     </div>
@@ -195,10 +195,10 @@ python m2monitor.py</code></pre>
 <footer>
   <div class="wrap">
     <div class="row">
-      <a href="https://github.com/IliescuM/m2monitor">{{footer_source}}</a>
-      <a href="https://github.com/IliescuM/m2monitor/releases">{{footer_releases}}</a>
-      <a href="https://github.com/IliescuM/m2monitor/issues">{{footer_issues}}</a>
-      <a href="https://github.com/IliescuM/m2monitor/blob/main/LICENSE">{{footer_license}}</a>
+      <a href="{repo}">{{footer_source}}</a>
+      <a href="{repo}/releases">{{footer_releases}}</a>
+      <a href="{repo}/issues">{{footer_issues}}</a>
+      <a href="{repo}/blob/main/LICENSE">{{footer_license}}</a>
     </div>
     <p>{{footer_disclaimer}}</p>
   </div>

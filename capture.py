@@ -4,20 +4,33 @@ Uses Windows Graphics Capture (through the windows-capture package), which
 reads the window's own DirectX output from the compositor. Unlike
 PrintWindow it works for games, for windows covered by other windows, and
 for clients running as administrator. Minimized windows produce no frames
-and return None. capture_window keeps one session open per window; call
-keep_streams to close the ones whose windows are gone.
+and return nothing. One session stays open per window; call keep_streams
+to close the ones whose windows are gone.
 """
 import ctypes
+import os
 import threading
+import time
+from collections import deque
 from ctypes import wintypes
 
-from PIL import Image
-from windows_capture import WindowsCapture
+# numpy (pulled in by windows-capture) otherwise reserves OpenBLAS buffers for
+# every CPU thread, about 600 MB on a many-core PC; nothing here needs them.
+# Must be set before numpy is first imported.
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+from PIL import Image  # noqa: E402
+from windows_capture import WindowsCapture  # noqa: E402
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 dwmapi = ctypes.WinDLL("dwmapi")
 
 FRAME_TIMEOUT_SECONDS = 2.0
+# Keep at most this many frames per second per window; names are read far
+# less often, and every kept frame is a copy of the whole window.
+FRAME_INTERVAL_SECONDS = 0.5
+# Recent frames kept per window, for OCR to merge (see charname.py).
+FRAMES_KEPT = 5
 DWMWA_EXTENDED_FRAME_BOUNDS = 9
 DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4
 GW_OWNER = 4
@@ -80,44 +93,65 @@ def client_box(hwnd):
 
 
 class WindowStream:
-    """One capture session kept open on a window, handing out frames on request.
+    """One capture session kept open on a window, holding its latest frame.
 
     Starting a new capture session for every screenshot leaks about one frame
     of native memory per session (~2 MB at 800x600), which adds up to
     gigabytes within hours, so each window keeps a single session.
+
+    Windows only sends a frame when the window's content changes, so recent
+    frames are kept rather than waiting for the next one: a static screen
+    (loading, AFK, a frame limiter) still has a current picture.
     """
 
     def __init__(self, hwnd):
-        self.closed = False
-        self._want = False
-        self._pixels = None
-        self._arrived = threading.Event()
+        self._lock = threading.Lock()
+        self._frames = deque(maxlen=FRAMES_KEPT)
+        self._kept_at = 0.0
+        self._first = threading.Event()
+        self._closed = False
+        try:
+            self._control = self._start(hwnd, int(FRAME_INTERVAL_SECONDS * 1000))
+        except Exception:  # Windows versions without a minimum update interval
+            self._control = self._start(hwnd, None)
+
+    def _start(self, hwnd, interval_ms):
         session = WindowsCapture(cursor_capture=False, draw_border=False,
+                                 minimum_update_interval=interval_ms,
                                  window_hwnd=hwnd)
 
         @session.event
         def on_frame_arrived(frame, control):
-            # Frames arrive many times a second; copy only the one asked for.
-            if self._want:
-                self._pixels = frame.frame_buffer.copy()
-                self._want = False
-                self._arrived.set()
+            # Also throttled here, for Windows versions that ignore the interval.
+            now = time.monotonic()
+            if now - self._kept_at < FRAME_INTERVAL_SECONDS and self._first.is_set():
+                return
+            pixels = frame.frame_buffer.copy()
+            with self._lock:
+                self._frames.append(pixels)
+                self._kept_at = now
+            self._first.set()
 
         @session.event
         def on_closed():
-            self.closed = True
-            self._arrived.set()
+            self._closed = True
+            self._first.set()
 
-        self._control = session.start_free_threaded()
+        return session.start_free_threaded()
 
-    def grab(self):
-        """Return the next BGRA frame as a numpy array, or None."""
-        self._pixels = None
-        self._arrived.clear()
-        self._want = True
-        self._arrived.wait(FRAME_TIMEOUT_SECONDS)
-        self._want = False
-        return self._pixels
+    @property
+    def alive(self):
+        """False once the session has ended, with or without on_closed."""
+        return not self._closed and not self._control.is_finished()
+
+    def recent(self):
+        """Return the kept BGRA frames as numpy arrays, oldest first.
+
+        The arrays are never written to again, so callers may keep them.
+        """
+        self._first.wait(FRAME_TIMEOUT_SECONDS)
+        with self._lock:
+            return list(self._frames)
 
     def stop(self):
         try:
@@ -136,25 +170,38 @@ def keep_streams(hwnds):
             _streams.pop(hwnd).stop()
 
 
-def capture_window(hwnd):
+def capture_frames(hwnd):
+    """Return the window's recent client-area images (PIL), oldest first."""
     if not hwnd or user32.IsIconic(hwnd):
-        return None
+        return []
+    stream = _streams.get(hwnd)
+    if stream is not None and not stream.alive:
+        _streams.pop(hwnd).stop()
+        stream = None
     try:
-        stream = _streams.get(hwnd)
-        if stream is None or stream.closed:
+        if stream is None:
             stream = _streams[hwnd] = WindowStream(hwnd)
-        pixels = stream.grab()
+        frames = stream.recent()
     except Exception:  # windows-capture raises plain Exception for closed windows
-        _streams.pop(hwnd, None)
-        return None
+        broken = _streams.pop(hwnd, None)
+        if broken is not None:
+            broken.stop()
+        return []
     box = client_box(hwnd)
-    if pixels is None or box is None:
-        return None
-    left, top, right, bottom = box
-    height, width = pixels.shape[:2]
-    left, top = max(left, 0), max(top, 0)
-    right, bottom = min(right, width), min(bottom, height)
-    if right <= left or bottom <= top:
-        return None
-    # Crop before converting, so only the client area is copied.
-    return Image.fromarray(pixels[top:bottom, left:right, 2::-1].copy())  # BGRA to RGB
+    if box is None:
+        return []
+    images = []
+    for pixels in frames:
+        height, width = pixels.shape[:2]
+        left, top = max(box[0], 0), max(box[1], 0)
+        right, bottom = min(box[2], width), min(box[3], height)
+        if right > left and bottom > top:
+            # Crop before converting, so only the client area is copied.
+            images.append(Image.fromarray(pixels[top:bottom, left:right, 2::-1].copy()))  # BGRA to RGB
+    return images
+
+
+def capture_window(hwnd):
+    """Return the window's latest client-area image (PIL), or None."""
+    images = capture_frames(hwnd)
+    return images[-1] if images else None

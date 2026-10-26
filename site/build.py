@@ -12,7 +12,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 DOCS = os.path.join(HERE, "..", "docs")
 BASE_URL = "https://m2monitor.app/"
-DOWNLOAD_URL = "https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe"
+REPO_URL = "https://github.com/IliescuM/m2monitor"
+DOWNLOAD_URL = f"{REPO_URL}/releases/latest/download/M2Monitor.exe"
 DEFAULT = "en"
 # Flag image in docs/flags/ for each language.
 FLAGS = {"en": "gb", "tr": "tr", "ro": "ro", "de": "de", "it": "it",
@@ -66,7 +67,7 @@ def main():
                       hreflang=hreflang, langnav=langnav,
                       css_version=file_version("style.css"), js_version=file_version("site.js"))
         html = re.sub(r"\{\{(\w+)\}\}", lambda m: values[m.group(1)], template)
-        html = html.replace("{dl}", DOWNLOAD_URL)
+        html = html.replace("{dl}", DOWNLOAD_URL).replace("{repo}", REPO_URL)
 
         out_dir = DOCS if lang == DEFAULT else os.path.join(DOCS, lang)
         os.makedirs(out_dir, exist_ok=True)

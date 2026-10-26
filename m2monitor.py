@@ -23,11 +23,6 @@ import webbrowser
 from collections import Counter, deque
 from ctypes import wintypes
 
-# numpy (pulled in by windows-capture) otherwise reserves OpenBLAS buffers for
-# every CPU thread, about 600 MB on a many-core PC; this app needs none of it.
-# Must be set before numpy is first imported.
-os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
-
 import customtkinter as ctk
 import psutil
 
@@ -36,12 +31,15 @@ import charname
 
 PROCESS_NAME = "metin2client.exe"
 REFRESH_SECONDS = 1.0
-NAME_READ_SECONDS = 2.0
-# A name is shown once it is the most common of the last NAME_HISTORY reads
-# and was read at least NAME_MIN_VOTES times, or right away once it is read
-# NAME_SWITCH_VOTES times in a row; single OCR misreads vary, so they rarely
-# repeat, while the real name does.
-NAME_HISTORY = 15
+# Read a client's name this often until one is found, then less often.
+NAME_FAST_SECONDS = 1.0
+NAME_SLOW_SECONDS = 4.0
+# A card shows the most common of the last NAME_HISTORY names read, once one
+# has been read NAME_MIN_VOTES times. A different name read NAME_SWITCH_VOTES
+# times in a row takes over at once, so a relog to another character shows
+# quickly. Reads that find no name (AFK dialog, loading screen, a fight
+# covering it) leave the name as it is.
+NAME_HISTORY = 12
 NAME_MIN_VOTES = 2
 NAME_SWITCH_VOTES = 3
 SETTINGS_PATH = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")),
@@ -50,7 +48,8 @@ SETTINGS_PATH = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")),
 ICON_PATH = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))),
                          "assets", "icon.ico")
 APP_ID = "IliescuM.M2Monitor"
-FEEDBACK_URL = "https://github.com/IliescuM/m2monitor/discussions"
+REPO_URL = "https://github.com/IliescuM/m2monitor"
+FEEDBACK_URL = f"{REPO_URL}/discussions/new/choose"
 
 MIB_TCP_STATE_ESTAB = 5
 MIB_TCP_STATE_DELETE_TCB = 12
@@ -288,46 +287,77 @@ class NameReader(threading.Thread):
         super().__init__(daemon=True)
         self.lock = threading.Lock()
         self.pids = set()
-        self.reads = {}  # pid -> deque of recent reads, None for "no name seen"
+        self.reads = {}  # pid -> deque of recent names read (misses not kept)
+        self.names = {}  # pid -> name shown
+        self.read_at = {}  # pid -> time.monotonic() of the last read
 
     def track(self, pids):
         with self.lock:
             self.pids = set(pids)
-            for pid in list(self.reads):
-                if pid not in self.pids:
-                    del self.reads[pid]
+            for table in (self.reads, self.names, self.read_at):
+                for pid in list(table):
+                    if pid not in self.pids:
+                        del table[pid]
 
     def name(self, pid):
         with self.lock:
-            reads = [n for n in self.reads.get(pid, ()) if n]
-        # The same name several reads in a row wins at once, so a relog to
-        # another character shows without out-voting the old name first.
-        recent = reads[-NAME_SWITCH_VOTES:]
+            return self.names.get(pid)
+
+    def _vote(self, pid, name):
+        """Record a read and update the name shown. Call with the lock held."""
+        reads = self.reads.setdefault(pid, deque(maxlen=NAME_HISTORY))
+        reads.append(name)
+        recent = list(reads)[-NAME_SWITCH_VOTES:]
         if len(recent) == NAME_SWITCH_VOTES and len(set(recent)) == 1:
-            return recent[0]
-        votes = Counter(reads)
-        if not votes:
-            return None
-        name, count = votes.most_common(1)[0]
-        return name if count >= NAME_MIN_VOTES else None
+            self.names[pid] = name
+            return
+        counts = Counter(reads)
+        top = max(counts.values())
+        if top < NAME_MIN_VOTES:
+            return
+        if counts.get(self.names.get(pid), 0) < top:
+            # Ties go to the most recent reading.
+            self.names[pid] = next(n for n in reversed(reads) if counts[n] == top)
+
+    def _due(self, pid, now):
+        interval = NAME_SLOW_SECONDS if pid in self.names else NAME_FAST_SECONDS
+        return now - self.read_at.get(pid, 0.0) >= interval
 
     def run(self):
         while True:
+            now = time.monotonic()
             with self.lock:
                 pids = sorted(self.pids)
+                due = [pid for pid in pids if self._due(pid, now)]
             windows = set()
             for pid in pids:
                 try:
                     hwnd = capture.main_window(pid)
                     windows.add(hwnd)
-                    name = charname.read_character_name(capture.capture_window(hwnd))
+                    name = (charname.read_character_name(capture.capture_frames(hwnd))
+                            if pid in due else None)
                 except Exception:  # a client closing mid-read must not stop the thread
                     name = None
-                with self.lock:
-                    if pid in self.pids:
-                        self.reads.setdefault(pid, deque(maxlen=NAME_HISTORY)).append(name)
+                if pid in due:
+                    with self.lock:
+                        if pid in self.pids:
+                            self.read_at[pid] = time.monotonic()
+                            if name:
+                                self._vote(pid, name)
             capture.keep_streams(windows)
-            time.sleep(NAME_READ_SECONDS)
+            time.sleep(0.25)
+
+
+def open_in_browser(url):
+    """Open a link in the default browser, never elevated.
+
+    Started from an elevated app, the browser would run as administrator
+    too; Explorer hands the link to the user's normal desktop session.
+    """
+    try:
+        subprocess.Popen(["explorer.exe", url])
+    except OSError:
+        webbrowser.open(url)
 
 
 FONT_FAMILY = "Segoe UI"
@@ -507,7 +537,7 @@ class MonitorApp(ctk.CTk):
         ctk.CTkButton(header, text="Feedback", width=90, fg_color="transparent",
                       border_width=1, border_color=PILL, text_color=TEXT,
                       hover_color=PILL, font=ctk.CTkFont(FONT_FAMILY, 13),
-                      command=lambda: webbrowser.open(FEEDBACK_URL)).grid(
+                      command=lambda: open_in_browser(FEEDBACK_URL)).grid(
             row=0, column=2, rowspan=2, sticky="e", padx=(16, 0))
         ctk.CTkCheckBox(header, text="Confirm before disconnect",
                         variable=self.confirm_disconnect,
