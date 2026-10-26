@@ -1,7 +1,7 @@
 {
   "en": {
     "lang_name": "English",
-    "meta_description": "A free, open-source Windows app that shows every M2 game client you have open: character name, server, latency, traffic, and a one-click disconnect.",
+    "meta_description": "Free, open-source Windows app for Metin2 players: see every open client with its character name, server, ping and traffic. Disconnect one with a click.",
     "nav_label": "Sections",
     "nav_features": "Features",
     "nav_install": "Install",
@@ -59,11 +59,13 @@
     "fb_h2": "Tell me what you think",
     "fb_p": "Ideas, bugs, or a character name it keeps misreading: every report helps. You need a free GitHub account.",
     "fb_idea": "Suggest an idea",
-    "fb_bug": "Report a bug"
+    "fb_bug": "Report a bug",
+    "page_title": "M2 Monitor – free multi-client monitor for Metin2",
+    "og_locale": "en_GB"
   },
   "tr": {
     "lang_name": "Türkçe",
-    "meta_description": "Açık olan tüm M2 oyun istemcilerini gösteren ücretsiz, açık kaynaklı bir Windows uygulaması: karakter adı, sunucu, gecikme, trafik ve tek tıkla bağlantı kesme.",
+    "meta_description": "Metin2 oyuncuları için ücretsiz, açık kaynaklı Windows uygulaması: her istemciyi karakter adı, sunucu, ping ve trafikle gör. Tek tıkla bağlantıyı kes.",
     "nav_label": "Bölümler",
     "nav_features": "Özellikler",
     "nav_install": "Kurulum",
@@ -121,11 +123,13 @@
     "fb_h2": "Ne düşündüğünü söyle",
     "fb_p": "Fikirler, hatalar ya da sürekli yanlış okunan bir karakter adı: her bildirim işe yarar. Ücretsiz bir GitHub hesabı gerekir.",
     "fb_idea": "Fikir öner",
-    "fb_bug": "Hata bildir"
+    "fb_bug": "Hata bildir",
+    "page_title": "M2 Monitor – Metin2 için ücretsiz çoklu istemci izleyici",
+    "og_locale": "tr_TR"
   },
   "ro": {
     "lang_name": "Română",
-    "meta_description": "O aplicație Windows gratuită și open source care îți arată toți clienții M2 deschiși: numele personajului, serverul, latența, traficul și deconectare dintr-un clic.",
+    "meta_description": "Aplicație Windows gratuită pentru jucătorii de Metin2: vezi fiecare client cu numele personajului, serverul, ping-ul și traficul. Deconectare dintr-un clic.",
     "nav_label": "Secțiuni",
     "nav_features": "Funcții",
     "nav_install": "Instalare",
@@ -183,11 +187,13 @@
     "fb_h2": "Spune-mi ce părere ai",
     "fb_p": "Idei, bug-uri sau un nume de personaj pe care îl citește mereu greșit: orice raport ajută. Ai nevoie de un cont GitHub gratuit.",
     "fb_idea": "Propune o idee",
-    "fb_bug": "Raportează un bug"
+    "fb_bug": "Raportează un bug",
+    "page_title": "M2 Monitor – monitor gratuit pentru mai mulți clienți Metin2",
+    "og_locale": "ro_RO"
   },
   "de": {
     "lang_name": "Deutsch",
-    "meta_description": "Eine kostenlose Open-Source-App für Windows, die alle offenen M2-Spielclients zeigt: Charaktername, Server, Latenz, Datenverkehr und Trennen mit einem Klick.",
+    "meta_description": "Kostenlose Open-Source-App für Metin2-Spieler: jeder offene Client mit Charaktername, Server, Ping und Datenverkehr. Trennen mit einem Klick.",
     "nav_label": "Abschnitte",
     "nav_features": "Funktionen",
     "nav_install": "Installation",
@@ -245,11 +251,13 @@
     "fb_h2": "Sag mir deine Meinung",
     "fb_p": "Ideen, Fehler oder ein Charaktername, der ständig falsch gelesen wird: Jede Meldung hilft. Du brauchst ein kostenloses GitHub-Konto.",
     "fb_idea": "Idee vorschlagen",
-    "fb_bug": "Fehler melden"
+    "fb_bug": "Fehler melden",
+    "page_title": "M2 Monitor – kostenloser Multi-Client-Monitor für Metin2",
+    "og_locale": "de_DE"
   },
   "it": {
     "lang_name": "Italiano",
-    "meta_description": "Un'app gratuita e open source per Windows che mostra tutti i client M2 aperti: nome del personaggio, server, latenza, traffico e disconnessione con un clic.",
+    "meta_description": "App Windows gratuita e open source per giocatori di Metin2: ogni client aperto con nome del personaggio, server, ping e traffico. Disconnessione con un clic.",
     "nav_label": "Sezioni",
     "nav_features": "Funzioni",
     "nav_install": "Installazione",
@@ -307,11 +315,13 @@
     "fb_h2": "Dimmi cosa ne pensi",
     "fb_p": "Idee, bug o un nome di personaggio che legge sempre male: ogni segnalazione aiuta. Serve un account GitHub gratuito.",
     "fb_idea": "Proponi un'idea",
-    "fb_bug": "Segnala un bug"
+    "fb_bug": "Segnala un bug",
+    "page_title": "M2 Monitor – monitor multi-client gratuito per Metin2",
+    "og_locale": "it_IT"
   },
   "pl": {
     "lang_name": "Polski",
-    "meta_description": "Darmowa aplikacja open source na Windows, która pokazuje wszystkie otwarte klienty M2: nazwę postaci, serwer, ping, transfer i rozłączanie jednym kliknięciem.",
+    "meta_description": "Darmowa aplikacja na Windows dla graczy Metin2: każdy otwarty klient z nazwą postaci, serwerem, pingiem i transferem. Rozłączanie jednym kliknięciem.",
     "nav_label": "Sekcje",
     "nav_features": "Funkcje",
     "nav_install": "Instalacja",
@@ -369,11 +379,13 @@
     "fb_h2": "Daj znać, co myślisz",
     "fb_p": "Pomysły, błędy albo nazwa postaci, którą ciągle źle odczytuje: każde zgłoszenie pomaga. Potrzebne jest darmowe konto GitHub.",
     "fb_idea": "Zaproponuj pomysł",
-    "fb_bug": "Zgłoś błąd"
+    "fb_bug": "Zgłoś błąd",
+    "page_title": "M2 Monitor – darmowy monitor wielu klientów Metin2",
+    "og_locale": "pl_PL"
   },
   "pt": {
     "lang_name": "Português",
-    "meta_description": "Uma aplicação gratuita e de código aberto para Windows que mostra todos os clientes de M2 abertos: nome da personagem, servidor, latência, tráfego e desconexão com um clique.",
+    "meta_description": "Aplicação Windows gratuita para jogadores de Metin2: cada cliente aberto com nome da personagem, servidor, ping e tráfego. Desconexão com um clique.",
     "nav_label": "Secções",
     "nav_features": "Funcionalidades",
     "nav_install": "Instalação",
@@ -431,11 +443,13 @@
     "fb_h2": "Diz-me o que achas",
     "fb_p": "Ideias, erros ou um nome de personagem que lê sempre mal: cada relato ajuda. Precisas de uma conta GitHub gratuita.",
     "fb_idea": "Sugerir uma ideia",
-    "fb_bug": "Reportar um erro"
+    "fb_bug": "Reportar um erro",
+    "page_title": "M2 Monitor – monitor gratuito de vários clientes de Metin2",
+    "og_locale": "pt_PT"
   },
   "es": {
     "lang_name": "Español",
-    "meta_description": "Una app gratuita y de código abierto para Windows que muestra todos tus clientes de M2 abiertos: nombre del personaje, servidor, latencia, tráfico y desconexión con un clic.",
+    "meta_description": "App gratuita para Windows para jugadores de Metin2: cada cliente abierto con nombre del personaje, servidor, ping y tráfico. Desconexión con un clic.",
     "nav_label": "Secciones",
     "nav_features": "Funciones",
     "nav_install": "Instalación",
@@ -493,11 +507,13 @@
     "fb_h2": "Cuéntame qué te parece",
     "fb_p": "Ideas, errores o un nombre de personaje que siempre lee mal: cada aviso ayuda. Necesitas una cuenta gratuita de GitHub.",
     "fb_idea": "Proponer una idea",
-    "fb_bug": "Informar de un error"
+    "fb_bug": "Informar de un error",
+    "page_title": "M2 Monitor – monitor gratuito de varios clientes de Metin2",
+    "og_locale": "es_ES"
   },
   "hu": {
     "lang_name": "Magyar",
-    "meta_description": "Ingyenes, nyílt forráskódú Windows-alkalmazás, amely megmutatja az összes megnyitott M2-kliensedet: karakternév, szerver, késleltetés, forgalom és lecsatlakoztatás egy kattintással.",
+    "meta_description": "Ingyenes Windows-alkalmazás Metin2-játékosoknak: minden kliens karakternévvel, szerverrel, pinggel és forgalommal. Lecsatlakoztatás egy kattintással.",
     "nav_label": "Szakaszok",
     "nav_features": "Funkciók",
     "nav_install": "Telepítés",
@@ -555,6 +571,8 @@
     "fb_h2": "Mondd el a véleményed",
     "fb_p": "Ötletek, hibák vagy egy karakternév, amit mindig rosszul olvas be: minden visszajelzés segít. Ehhez egy ingyenes GitHub-fiók kell.",
     "fb_idea": "Ötlet beküldése",
-    "fb_bug": "Hiba bejelentése"
+    "fb_bug": "Hiba bejelentése",
+    "page_title": "M2 Monitor – ingyenes többkliens-figyelő Metin2-höz",
+    "og_locale": "hu_HU"
   }
 }
