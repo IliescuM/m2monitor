@@ -6,7 +6,8 @@
 A small Windows desktop app that keeps an eye on every M2 game client you
 have open. For each running client it shows:
 
-- the **character name**, read from the game window with Windows' built-in OCR
+- the **character name**, read from the game window with Windows' built-in OCR,
+  or typed by you (click the name); a typed name stays until that client closes
 - the **server** the client is connected to
 - **latency (RTT)** and **traffic** in and out
 - process ID, start time and memory use
@@ -73,6 +74,18 @@ sent anywhere.
 **Disconnect.** By default the button asks for a second click within 3 seconds.
 Untick **Confirm before disconnect** in the header to disconnect on one click.
 The choice is saved in `%APPDATA%\m2monitor\settings.json`.
+
+## Tests
+
+```
+python -m pip install pytest
+python -m pytest tests
+```
+
+The tests draw synthetic nameplates (every rank title colour, with and without
+a title or guild, with fight clutter) and check that the name is read and
+that monster plates, other players and guild lines are never taken for it.
+They need Windows with an OCR language installed.
 
 ## Website
 

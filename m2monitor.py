@@ -2,7 +2,8 @@
 
 Shows every client process (PROCESS_NAME) as a card with its character name,
 server connections, latency and traffic. The name is read with OCR from
-screenshots of the client in a background thread. Latency and traffic come
+screenshots of the client in a background thread, or typed on the card by
+the user, which then lasts until that client closes. Latency and traffic come
 from Windows TCP extended statistics (EStats), which only an elevated prompt
 can enable; without admin rights those fields show "-". Each client has a
 Disconnect button that resets its server connections, which also needs
@@ -42,6 +43,7 @@ NAME_SLOW_SECONDS = 4.0
 NAME_HISTORY = 12
 NAME_MIN_VOTES = 2
 NAME_SWITCH_VOTES = 3
+MANUAL_NAME_MAX = 24
 SETTINGS_PATH = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")),
                              "m2monitor", "settings.json")
 # A built .exe unpacks bundled files under sys._MEIPASS.
@@ -348,6 +350,11 @@ class NameReader(threading.Thread):
             time.sleep(0.25)
 
 
+def client_key(pid, create_time):
+    """Identify one client process; PIDs alone are reused by Windows."""
+    return f"{pid}:{create_time}"
+
+
 def open_in_browser(url):
     """Open a link in the default browser, never elevated.
 
@@ -362,6 +369,7 @@ def open_in_browser(url):
 
 FONT_FAMILY = "Segoe UI"
 MONO_FAMILY = "Consolas"
+ICON_FAMILY = "Segoe MDL2 Assets"  # Windows' icon font, on Windows 10 and 11
 CONFIRM_SECONDS = 3
 MESSAGE_SECONDS = 6
 
@@ -408,10 +416,22 @@ class ClientCard(ctk.CTkFrame):
         self.conn_rows = []
         self.grid_columnconfigure(1, weight=1)
 
+        self.name = None  # name shown, read or typed
+        self.entry = None  # text field while the name is being edited
         # Fixed width keeps the connection columns aligned across cards.
-        self.title = ctk.CTkLabel(self, anchor="w", width=160,
+        # A fixed size, so editing the name (field plus two buttons) never
+        # shifts the columns.
+        self.name_box = ctk.CTkFrame(self, fg_color="transparent", width=164, height=28)
+        self.name_box.grid_propagate(False)
+        self.name_box.grid(row=0, column=0, sticky="w", padx=(16, 24), pady=(12, 0))
+        self.title = ctk.CTkLabel(self.name_box, anchor="w", width=136, cursor="hand2",
                                   font=ctk.CTkFont(FONT_FAMILY, 15, "bold"))
-        self.title.grid(row=0, column=0, sticky="w", padx=(16, 24), pady=(12, 0))
+        self.title.grid(row=0, column=0, sticky="w")
+        self.title.bind("<Button-1>", lambda event: self.start_edit())
+        # Windows' own "Edit" pencil from its built-in icon font.
+        self.edit_button = self.icon_button("", MUTED, self.start_edit)
+        self.edit_button.grid(row=0, column=1, padx=(2, 0))
+        self.edit_controls = []  # text field and save/cancel buttons while editing
         self.details = ctk.CTkLabel(self, anchor="w", justify="left",
                                     text_color=MUTED,
                                     font=ctk.CTkFont(FONT_FAMILY, 12))
@@ -426,18 +446,21 @@ class ClientCard(ctk.CTkFrame):
                                     command=self.on_click)
         self.button.grid(row=0, column=2, rowspan=2, padx=16, pady=12)
 
-    def show(self, index, info, stats, admin, name):
+    def show(self, index, info, stats, admin, name, manual=False):
         self.create_time = info["create_time"]
         started = ("?" if info["create_time"] is None else
                    time.strftime("%H:%M:%S", time.localtime(info["create_time"])))
         ram = info["memory_info"].rss / (1024 * 1024) if info["memory_info"] else 0
+        self.name = name
         if name:
             self.title.configure(text=name, text_color=TEXT)
         else:
             self.title.configure(text="Reading name…", text_color=MUTED)
+        # On the shortest line, so the column keeps its width.
+        source = "  ·  named by you" if manual else ""
         self.details.configure(
             text=f"Client {index}  ·  PID {info['pid']}\n"
-                 f"Started {started}\n{ram:.0f} MB RAM")
+                 f"Started {started}\n{ram:.0f} MB RAM{source}")
         self.show_connections(stats)
 
         if admin and stats:
@@ -479,6 +502,48 @@ class ClientCard(ctk.CTkFrame):
             labels.append(label)
         return labels
 
+    def icon_button(self, glyph, color, command):
+        return ctk.CTkButton(self.name_box, text=glyph, width=24, height=24,
+                             fg_color="transparent", hover_color=PILL, text_color=color,
+                             font=ctk.CTkFont(ICON_FAMILY, 12), command=command)
+
+    def start_edit(self):
+        """Swap the name for a text field with save and cancel buttons.
+        Enter and Esc work too; an empty name goes back to reading it
+        automatically."""
+        if self.entry is not None:
+            return
+        # Field plus two buttons take the same width as name plus pencil, so
+        # the card's columns do not shift while editing.
+        self.entry = ctk.CTkEntry(self.name_box, width=108, placeholder_text="Empty = automatic",
+                                  font=ctk.CTkFont(FONT_FAMILY, 14))
+        if self.name:
+            self.entry.insert(0, self.name)
+        save = self.icon_button("", GOOD, lambda: self.finish_edit(save=True))
+        cancel = self.icon_button("", MUTED, lambda: self.finish_edit(save=False))
+        self.title.grid_remove()
+        self.edit_button.grid_remove()
+        self.entry.grid(row=0, column=0, sticky="w")
+        save.grid(row=0, column=1, padx=(2, 0))
+        cancel.grid(row=0, column=2)
+        self.edit_controls = [self.entry, save, cancel]
+        self.entry.focus_set()
+        self.entry.select_range(0, "end")
+        self.entry.bind("<Return>", lambda event: self.finish_edit(save=True))
+        self.entry.bind("<Escape>", lambda event: self.finish_edit(save=False))
+
+    def finish_edit(self, save):
+        if self.entry is None:
+            return
+        text = self.entry.get().strip()[:MANUAL_NAME_MAX]
+        for widget in self.edit_controls:
+            widget.destroy()
+        self.entry, self.edit_controls = None, []
+        self.title.grid()
+        self.edit_button.grid()
+        if save:
+            self.app.set_manual_name(self.pid, self.create_time, text)
+
     def on_click(self):
         if self.confirm_job is None and self.app.confirm_disconnect.get():
             self.button.configure(text="Confirm?", fg_color=CONFIRM,
@@ -514,6 +579,8 @@ class MonitorApp(ctk.CTk):
         self.settings = load_settings()
         self.confirm_disconnect = ctk.BooleanVar(
             value=self.settings.get("confirm_disconnect", True))
+        # Names typed by the user, keyed by client process; see client_key.
+        self.manual_names = dict(self.settings.get("manual_names", {}))
         self.names = NameReader()
         self.names.start()
 
@@ -577,7 +644,16 @@ class MonitorApp(ctk.CTk):
     def update_cards(self):
         clients = collect_clients(self.admin, self.enabled, self.previous)
         live = {info["pid"] for info, _ in clients}
-        self.names.track(live)
+        keys = {client_key(info["pid"], info["create_time"]) for info, _ in clients}
+        # A typed name lasts as long as its client: drop those of closed clients.
+        closed = [key for key in self.manual_names if key not in keys]
+        for key in closed:
+            del self.manual_names[key]
+        if closed:
+            self.save_manual_names()
+        # Clients with a typed name need no reading.
+        self.names.track({info["pid"] for info, _ in clients
+                          if client_key(info["pid"], info["create_time"]) not in self.manual_names})
         for pid in list(self.cards):
             if pid not in live:
                 self.cards.pop(pid).destroy()
@@ -587,7 +663,9 @@ class MonitorApp(ctk.CTk):
             if pid not in self.cards:
                 self.cards[pid] = ClientCard(self.list, self, pid)
             card = self.cards[pid]
-            card.show(index, info, stats, self.admin, self.names.name(pid))
+            manual = self.manual_names.get(client_key(pid, info["create_time"]))
+            card.show(index, info, stats, self.admin, manual or self.names.name(pid),
+                      manual=bool(manual))
             card.grid(row=index, column=0, sticky="ew", padx=8, pady=(0, 10))
 
         if clients:
@@ -634,6 +712,20 @@ class MonitorApp(ctk.CTk):
         self.settings["confirm_disconnect"] = self.confirm_disconnect.get()
         save_settings(self.settings)
 
+    def set_manual_name(self, pid, create_time, name):
+        """Show `name` for this client until it closes; empty reads it again."""
+        key = client_key(pid, create_time)
+        if name:
+            self.manual_names[key] = name
+        elif self.manual_names.pop(key, None) is None:
+            return
+        self.save_manual_names()
+        self.update_cards()
+
+    def save_manual_names(self):
+        self.settings["manual_names"] = dict(self.manual_names)
+        save_settings(self.settings)
+
     def elevate(self):
         if restart_as_admin():
             self.destroy()
@@ -642,6 +734,9 @@ class MonitorApp(ctk.CTk):
 
 
 def main():
+    # Never compete with the game clients for CPU: under heavy load the game
+    # (and its anti-cheat) can crash.
+    psutil.Process().nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     # Own taskbar identity, so the taskbar shows this app's icon, not Python's.
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
     ctk.set_appearance_mode("system")

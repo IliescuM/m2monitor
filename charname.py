@@ -2,19 +2,24 @@
 
 The camera keeps your own character in the middle of the screen, with a
 nameplate such as "Lv 105 Cavaler PlayerName" above its head. The name itself
-is centred horizontally on the screen; the level and title stick out to its
-left, and the guild name, if any, sits centred just above it.
+is centred horizontally on the screen; the level and the rank title stick out
+to its left, and the guild name, if any, sits centred just above it. The
+title depends on rank points and its colour runs from blue (positive) through
+white to orange and red (negative); characters may also have no title or no
+guild. Zooming the camera moves the nameplate up or down, or off screen when
+zoomed all the way in.
 
 Reading works on the last few screenshots of a client:
 1. Merge them with a per-pixel median around the screen centre. The
    nameplate stays put on screen while monsters, damage numbers and spell
    effects move, so the median keeps the name and fades the clutter.
-2. OCR that area with Windows' built-in OCR and pick the centred word with a
-   level marker ("Lv") just before it, nearest the usual nameplate height.
+2. OCR that area with Windows' built-in OCR, in colour and in high contrast,
+   and pick the centred word with a level marker ("Lv") just before it,
+   nearest the usual nameplate height.
    The guild line above has no level marker, so it is never picked.
-3. OCR that word again on its own, enlarged, once in colour and once as
-   high-contrast greyscale. The name counts only when both readings agree,
-   which rejects nearly all misreads.
+3. OCR that word again on its own, enlarged, in colour, as high-contrast
+   greyscale and as colour saturation. The name counts only when at least
+   two readings agree, which rejects nearly all misreads.
 
 A read can still come back empty when the name is covered, so callers should
 read repeatedly and keep the last agreed name.
@@ -22,6 +27,7 @@ read repeatedly and keep the last agreed name.
 import asyncio
 import os
 import re
+from collections import Counter
 
 # See capture.py: keep numpy from reserving OpenBLAS buffers per CPU thread.
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
@@ -33,8 +39,9 @@ from winrt.windows.graphics.imaging import (  # noqa: E402
 from winrt.windows.media.ocr import OcrEngine  # noqa: E402
 from winrt.windows.storage.streams import DataWriter  # noqa: E402
 
-# Search band, as fractions of the client size.
-CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM = 0.34, 0.25, 0.66, 0.55
+# Search band, as fractions of the client size. It reaches far to the left
+# because "Lv", the level and a long title come before a centred name.
+CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM = 0.18, 0.25, 0.66, 0.55
 # A name's centre is at most this far from mid-screen, as a fraction of width.
 # The own name measures within 1%; other players standing right below or
 # above the character are often within 4%.
@@ -43,8 +50,8 @@ CENTER_TOLERANCE = 0.02
 # zoom moves it a little; other players below or above sit further away.
 NAMEPLATE_Y = 0.45
 # How many words before a name may hold its "Lv" marker: "Lv", the level and
-# a title of up to two words.
-PREFIX_WORDS = 4
+# a title of up to three words.
+PREFIX_WORDS = 5
 # Words of one nameplate are about one word height apart (measured 0.4-1.04);
 # separate nameplates on one OCR line are much further apart.
 WORD_GAP = 1.5
@@ -52,7 +59,8 @@ SEARCH_UPSCALE = 3
 WORD_UPSCALE = 6
 WORD_PADDING = 6
 
-_LEVEL = re.compile(r"L[vV](?![A-Za-z])")
+# "Lv" as a word of its own; OCR often drops the "v" of the small font.
+_LEVEL = re.compile(r"(?<![A-Za-z])L[vV]?(?![A-Za-z])")
 _NAME = re.compile(r"[A-Za-z][A-Za-z0-9]{2,15}")
 
 _engine = OcrEngine.try_create_from_user_profile_languages()
@@ -83,30 +91,73 @@ def _high_contrast(image):
     return ImageOps.invert(ImageOps.autocontrast(brightest, cutoff=1)).convert("RGB")
 
 
-def ocr_words(image, origin=(0, 0), scale=1):
-    """Return (word, prefix, box, gap_after) for each OCR word.
+def _saturation(image):
+    """Colour saturation, stretched and inverted. Separates coloured text
+    from a light grey background, where brightness alone does not."""
+    saturation = image.convert("HSV").split()[1]
+    return ImageOps.invert(ImageOps.autocontrast(saturation, cutoff=1)).convert("RGB")
 
-    `prefix` is the text of up to PREFIX_WORDS words before it on the same
-    line, `box` is (left, top, right, bottom), and `gap_after` is the space
-    to the next word on the line, or None for the last word. Boxes and gaps
-    are mapped back through `scale` and `origin`, so they are in the
+
+def _same_row(a, b):
+    """True when two word boxes sit on the same row of text."""
+    height = max(a[3] - a[1], b[3] - b[1])
+    return abs(_center(a)[1] - _center(b)[1]) <= height * 0.5
+
+
+def _ocr_boxes(image, origin=(0, 0), scale=1):
+    """Return (word, (left, top, right, bottom)) for each OCR word.
+
+    Boxes are mapped back through `scale` and `origin`, so they are in the
     coordinates of the image `image` was cropped and scaled from.
     """
     result = asyncio.run(_recognize(image))
-    words = []
+    found = []
     for line in result.lines:
-        line_words = list(line.words)
-        for index, word in enumerate(line_words):
-            prefix = " ".join(w.text for w in line_words[max(0, index - PREFIX_WORDS):index])
+        for word in line.words:
             rect = word.bounding_rect
             left = origin[0] + rect.x / scale
             top = origin[1] + rect.y / scale
-            right = left + rect.width / scale
-            gap_after = None
-            if index + 1 < len(line_words):
-                gap_after = origin[0] + line_words[index + 1].bounding_rect.x / scale - right
-            words.append((word.text, prefix,
-                          (left, top, right, top + rect.height / scale), gap_after))
+            found.append((word.text, (left, top, left + rect.width / scale,
+                                      top + rect.height / scale)))
+    return found
+
+
+def ocr_words(image, origin=(0, 0), scale=1):
+    """Return (word, prefix, box, gap_after) for each OCR word; see _rows."""
+    return _rows(_ocr_boxes(image, origin, scale))
+
+
+def _rows(found):
+    """Return (word, prefix, box, gap_after) for each (word, box) in `found`.
+
+    Words are grouped into rows by position rather than by OCR's own lines,
+    which split a nameplate where its colours change and can merge two
+    neighbouring nameplates. `prefix` is the text of up to PREFIX_WORDS words
+    before the word on its row, each within WORD_GAP word heights of the
+    next. `gap_after` is the space to the next word to the right on the row,
+    or None when there is none. `found` may combine several OCR passes over
+    the same image; overlapping duplicates are skipped when walking a row.
+    """
+    words = []
+    for index, (text, box) in enumerate(found):
+        row = [found[i] for i in range(len(found))
+               if i != index and _same_row(box, found[i][1])]
+        height = box[3] - box[1]
+        right = [b[0] - box[2] for _, b in row if _center(b)[0] > _center(box)[0]]
+        gap_after = min(right) if right else None
+
+        prefix, current = [], box
+        while len(prefix) < PREFIX_WORDS:
+            left = [(t, b) for t, b in row if _center(b)[0] < _center(current)[0]
+                    and b[2] <= current[0] + height * 0.3]
+            if not left:
+                break
+            word_text, nearest = max(left, key=lambda w: w[1][2])
+            if current[0] - nearest[2] > height * WORD_GAP:
+                break
+            prefix.insert(0, word_text)
+            current = nearest
+        words.append((text, " ".join(prefix), box, gap_after))
     return words
 
 
@@ -142,8 +193,15 @@ def _find_name_word(screenshot):
     """Return the box of the own character's name word, or None."""
     width, height = screenshot.size
     band = _search_band(screenshot.size)
-    words = ocr_words(_upscale(screenshot.crop(band), SEARCH_UPSCALE),
-                      origin=band[:2], scale=SEARCH_UPSCALE)
+    crop = screenshot.crop(band)
+    # Read the colour image and a high-contrast copy, and group the words of
+    # both together: each pass often finds only part of a nameplate, such as
+    # a dark "Lv" (contrast) or a light name (colour).
+    found = []
+    for image in (crop, _high_contrast(crop)):
+        found += _ocr_boxes(_upscale(image, SEARCH_UPSCALE),
+                            origin=band[:2], scale=SEARCH_UPSCALE)
+    words = _rows(found)
 
     def last_on_plate(box, gap_after):
         # A name ends its nameplate. A word followed at normal word spacing is
@@ -195,9 +253,18 @@ def read_character_name(screenshots):
         return None
 
     left, top, right, bottom = box
+    # OCR sometimes finds only the end of the name ("enshade"). The name is
+    # centred on screen, so its left edge mirrors its right edge: widen the
+    # crop to that, never narrow it, so the whole name is read.
+    left = min(left, screenshot.width - right)
     word = screenshot.crop((int(left) - WORD_PADDING, int(top) - 4,
                             int(right) + WORD_PADDING + 1, int(bottom) + 5))
-    name = _read_word(word)
-    if name is None or name != _read_word(_high_contrast(word)):
+    # Read the word in three versions of the image; a name counts when at
+    # least two agree. Each version fails on some backgrounds, but they
+    # rarely misread a name the same way.
+    readings = Counter(n for n in (_read_word(word), _read_word(_high_contrast(word)),
+                                   _read_word(_saturation(word))) if n)
+    if not readings:
         return None
-    return name
+    name, votes = readings.most_common(1)[0]
+    return name if votes >= 2 else None
