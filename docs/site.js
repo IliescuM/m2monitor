@@ -39,6 +39,67 @@
     }
   }
 
+  // The example cards can be renamed like in the app: click the name or the
+  // pencil, then save or cancel. Nothing is stored or sent anywhere.
+  var mock = document.querySelector(".mock");
+  var ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  var ICON_NO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  if (mock) {
+    mock.querySelectorAll(".who").forEach(function (who) {
+      var row = who.querySelector(".mname-row");
+      var name = who.querySelector(".mname");
+      var pen = who.querySelector(".pen-btn");
+      var info = who.querySelector("small");
+      var card = who.closest(".client");
+
+      function button(cls, icon, label, onClick) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "icon-btn " + cls; b.innerHTML = icon;
+        b.setAttribute("aria-label", label);
+        b.addEventListener("click", onClick);
+        return b;
+      }
+
+      function start() {
+        if (row.querySelector("input")) return;
+        var input = document.createElement("input");
+        input.type = "text"; input.maxLength = 24; input.className = "mname-input";
+        input.placeholder = "Empty = automatic";
+        input.setAttribute("aria-label", pen.getAttribute("aria-label"));
+        if (!name.dataset.auto) input.value = name.textContent;
+        var ok = button("ok", ICON_OK, mock.dataset.save, function () { finish(true); });
+        var no = button("no", ICON_NO, mock.dataset.cancel, function () { finish(false); });
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") finish(true);
+          if (e.key === "Escape") finish(false);
+        });
+        name.hidden = true; pen.hidden = true;
+        row.append(input, ok, no);
+        input.focus(); input.select();
+
+        function finish(save) {
+          var value = input.value.trim();
+          input.remove(); ok.remove(); no.remove();
+          name.hidden = false; pen.hidden = false; pen.focus();
+          if (!save) return;
+          var client = info.dataset.base.split(" · ")[0];
+          if (value) {
+            name.textContent = value; delete name.dataset.auto;
+            info.textContent = client + " · named by you";
+            card.classList.remove("reading");
+          } else {
+            name.textContent = "Reading name…"; name.dataset.auto = "1";
+            info.textContent = info.dataset.base;
+            card.classList.add("reading");
+          }
+        }
+      }
+
+      name.addEventListener("click", start);
+      pen.addEventListener("click", start);
+    });
+  }
+
   // Let the example RTT readings drift a little, like the real app refreshing.
   var cells = document.querySelectorAll(".rtt");
   function level(ms) { return ms < 80 ? "good" : ms < 150 ? "warn" : "bad"; }

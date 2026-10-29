@@ -45,7 +45,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="../style.css?v=ce1d8ed206">
+<link rel="stylesheet" href="../style.css?v=d0723a3f14">
 </head>
 <body>
 
@@ -79,35 +79,44 @@
           </a>
           <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor">Vezi codul sursă</a>
         </div>
-        <p class="fine">M2Monitor.exe · aproximativ 72 MB · Windows 10 sau 11 · nu necesită instalare</p>
+        <p class="fine">M2Monitor.exe v1.0.3 · aproximativ 72 MB · Windows 10 sau 11 · nu necesită instalare</p>
+        <div class="whatsnew">
+          <p class="whatsnew-title">Nou în versiunea 1.0.3</p>
+          <ul>
+            <li>Scrie singur numele personajului</li>
+            <li>Citește orice titlu de grad, în orice culoare</li>
+            <li>Prioritate mai mică, ca jocul să aibă mereu întâietate</li>
+          </ul>
+          <a href="https://github.com/IliescuM/m2monitor/releases/latest">Toate modificările</a>
+        </div>
       </div>
 
-      <div class="mock" role="img" aria-label="Exemplu de fereastră M2 Monitor cu patru clienți de joc">
+      <div class="mock" aria-label="Exemplu de fereastră M2 Monitor cu patru clienți de joc" data-save="Salvează" data-cancel="Anulează">
         <div class="mock-head">
           <div><b>M2 Monitor</b><br><span>4 clients, 4 connected</span></div>
           <span class="pill">Administrator</span>
         </div>
         <div class="client">
-          <div class="who"><b>Ravenshade</b><small>Client 1 · PID 7804</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">Ravenshade</b><button type="button" class="pen-btn" aria-label="Editează numele"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 1 · PID 7804">Client 1 · PID 7804</small></div>
           <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="47">47 ms</span><span>In 2.4 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client">
-          <div class="who"><b>LotusBlade</b><small>Client 2 · PID 12496</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">LotusBlade</b><button type="button" class="pen-btn" aria-label="Editează numele"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 2 · PID 12496">Client 2 · PID 12496</small></div>
           <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="69">69 ms</span><span>In 0.1 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client">
-          <div class="who"><b>IronMonk</b><small>Client 3 · PID 22628</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">IronMonk</b><button type="button" class="pen-btn" aria-label="Editează numele"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 3 · PID 22628">Client 3 · named by you</small></div>
           <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="128">128 ms</span><span>In 0.3 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client reading">
-          <div class="who"><b>Reading name…</b><small>Client 4 · PID 27532</small></div>
+          <div class="who"><div class="mname-row"><b class="mname" data-auto="1">Reading name…</b><button type="button" class="pen-btn" aria-label="Editează numele"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 4 · PID 27532">Client 4 · PID 27532</small></div>
           <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="46">46 ms</span><span>In 3.2 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
-        <p class="example-note">Date de exemplu</p>
+        <p class="example-note"><span class="mock-hint">Încearcă: dă clic pe un nume ca să-l schimbi</span> · Date de exemplu</p>
       </div>
     </div>
   </section>
@@ -135,7 +144,7 @@
         </div>
         <div class="feature">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/></svg>Nu atinge jocul</h3>
-          <p>Fără injectare, fără citirea memoriei, fără pachete trimise. Capturile pentru citirea numelui rămân doar în memorie și nu sunt salvate niciodată.</p>
+          <p>Fără injectare, fără citirea memoriei, fără pachete trimise. Capturile pentru citirea numelui rămân doar în memorie și nu sunt salvate niciodată. Rulează cu prioritate scăzută, ca jocul să aibă mereu întâietate.</p>
         </div>
         <div class="feature">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg>Open source</h3>
@@ -179,6 +188,7 @@
             <li><a href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">Descarcă M2Monitor.exe</a> și salvează-l oriunde, de exemplu în Documente.</li>
             <li>Dă dublu clic pe el. Dacă Windows afișează avertismentul albastru SmartScreen, apasă <b>Mai multe informații</b>, apoi butonul care pornește aplicația oricum. Aplicația nu are semnătură digitală, lucru normal pentru programele gratuite făcute din pasiune.</li>
             <li>Apasă <b>Restart as administrator</b> în fereastră ca să activezi latența, traficul și deconectarea.</li>
+            <li><b>Actualizare:</b> închide M2 Monitor, descarcă noul M2Monitor.exe și înlocuiește fișierul vechi. Setările rămân.</li>
           </ol>
           <p class="note">Numele, serverele și detaliile proceselor merg și fără drepturi de administrator. Windows permite doar programelor pornite ca administrator să citească statisticile conexiunilor și să le închidă.</p>
         </div>
@@ -237,6 +247,6 @@ python m2monitor.py</code></pre>
   </div>
 </footer>
 
-<script src="../site.js?v=e20082e7b2"></script>
+<script src="../site.js?v=6a04e72273"></script>
 </body>
 </html>

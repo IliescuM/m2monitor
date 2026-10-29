@@ -45,7 +45,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="../style.css?v=ce1d8ed206">
+<link rel="stylesheet" href="../style.css?v=d0723a3f14">
 </head>
 <body>
 
@@ -79,35 +79,44 @@
           </a>
           <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor">Kaynak kodu</a>
         </div>
-        <p class="fine">M2Monitor.exe · yaklaşık 72 MB · Windows 10 veya 11 · kurulum gerektirmez</p>
+        <p class="fine">M2Monitor.exe v1.0.3 · yaklaşık 72 MB · Windows 10 veya 11 · kurulum gerektirmez</p>
+        <div class="whatsnew">
+          <p class="whatsnew-title">1.0.3 sürümünde yeni</p>
+          <ul>
+            <li>Karakter adını kendin yaz</li>
+            <li>Her rütbe unvanını ve rengini okur</li>
+            <li>Daha düşük öncelik: oyunun hep önce gelir</li>
+          </ul>
+          <a href="https://github.com/IliescuM/m2monitor/releases/latest">Tüm değişiklikler</a>
+        </div>
       </div>
 
-      <div class="mock" role="img" aria-label="Dört oyun istemcisinin listelendiği M2 Monitor penceresi örneği">
+      <div class="mock" aria-label="Dört oyun istemcisinin listelendiği M2 Monitor penceresi örneği" data-save="Kaydet" data-cancel="İptal">
         <div class="mock-head">
           <div><b>M2 Monitor</b><br><span>4 clients, 4 connected</span></div>
           <span class="pill">Administrator</span>
         </div>
         <div class="client">
-          <div class="who"><b>Ravenshade</b><small>Client 1 · PID 7804</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">Ravenshade</b><button type="button" class="pen-btn" aria-label="Adı düzenle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 1 · PID 7804">Client 1 · PID 7804</small></div>
           <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="47">47 ms</span><span>In 2.4 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client">
-          <div class="who"><b>LotusBlade</b><small>Client 2 · PID 12496</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">LotusBlade</b><button type="button" class="pen-btn" aria-label="Adı düzenle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 2 · PID 12496">Client 2 · PID 12496</small></div>
           <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="69">69 ms</span><span>In 0.1 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client">
-          <div class="who"><b>IronMonk</b><small>Client 3 · PID 22628</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">IronMonk</b><button type="button" class="pen-btn" aria-label="Adı düzenle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 3 · PID 22628">Client 3 · named by you</small></div>
           <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="128">128 ms</span><span>In 0.3 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client reading">
-          <div class="who"><b>Reading name…</b><small>Client 4 · PID 27532</small></div>
+          <div class="who"><div class="mname-row"><b class="mname" data-auto="1">Reading name…</b><button type="button" class="pen-btn" aria-label="Adı düzenle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 4 · PID 27532">Client 4 · PID 27532</small></div>
           <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="46">46 ms</span><span>In 3.2 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
-        <p class="example-note">Örnek veriler</p>
+        <p class="example-note"><span class="mock-hint">Dene: bir isme tıklayıp değiştir</span> · Örnek veriler</p>
       </div>
     </div>
   </section>
@@ -135,7 +144,7 @@
         </div>
         <div class="feature">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/></svg>Oyuna dokunmaz</h3>
-          <p>Enjeksiyon yok, bellek okuma yok, paket gönderme yok. Ad okuma için alınan ekran görüntüleri yalnızca bellekte kalır ve asla kaydedilmez.</p>
+          <p>Enjeksiyon yok, bellek okuma yok, paket gönderme yok. Ad okuma için alınan ekran görüntüleri yalnızca bellekte kalır ve asla kaydedilmez. Düşük öncelikte çalışır, böylece oyunun her zaman önce gelir.</p>
         </div>
         <div class="feature">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg>Açık kaynak</h3>
@@ -179,6 +188,7 @@
             <li><a href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">M2Monitor.exe dosyasını indir</a> ve istediğin bir yere kaydet, örneğin Belgeler klasörüne.</li>
             <li>Dosyaya çift tıkla. Windows “Windows kişisel bilgisayarınızı korudu” uyarısı gösterirse önce <b>Ek bilgi</b>, sonra <b>Yine de çalıştır</b> seçeneğine tıkla. Uygulama kod imzalı değil; ücretsiz hobi araçlarında bu normaldir.</li>
             <li>Gecikme, trafik ve bağlantı kesmeyi açmak için penceredeki <b>Restart as administrator</b> düğmesine tıkla.</li>
+            <li><b>Güncelleme:</b> M2 Monitor'ü kapat, yeni M2Monitor.exe dosyasını indir ve eskisinin yerine koy. Ayarların korunur.</li>
           </ol>
           <p class="note">Adlar, sunucular ve işlem bilgileri yönetici hakları olmadan da çalışır. Windows, bağlantı istatistiklerini okuma ve bağlantıları sıfırlama iznini yalnızca yönetici olarak çalışan programlara verir.</p>
         </div>
@@ -237,6 +247,6 @@ python m2monitor.py</code></pre>
   </div>
 </footer>
 
-<script src="../site.js?v=e20082e7b2"></script>
+<script src="../site.js?v=6a04e72273"></script>
 </body>
 </html>

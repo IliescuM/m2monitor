@@ -45,7 +45,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="../style.css?v=ce1d8ed206">
+<link rel="stylesheet" href="../style.css?v=d0723a3f14">
 </head>
 <body>
 
@@ -79,35 +79,44 @@
           </a>
           <a class="btn btn-ghost" href="https://github.com/IliescuM/m2monitor">Ver o código</a>
         </div>
-        <p class="fine">M2Monitor.exe · cerca de 72 MB · Windows 10 ou 11 · sem instalação</p>
+        <p class="fine">M2Monitor.exe v1.0.3 · cerca de 72 MB · Windows 10 ou 11 · sem instalação</p>
+        <div class="whatsnew">
+          <p class="whatsnew-title">Novidades na versão 1.0.3</p>
+          <ul>
+            <li>Escreve tu o nome da personagem</li>
+            <li>Lê todos os títulos de grau e cores</li>
+            <li>Prioridade mais baixa, para o jogo vir sempre primeiro</li>
+          </ul>
+          <a href="https://github.com/IliescuM/m2monitor/releases/latest">Todas as alterações</a>
+        </div>
       </div>
 
-      <div class="mock" role="img" aria-label="Exemplo da janela do M2 Monitor com quatro clientes do jogo">
+      <div class="mock" aria-label="Exemplo da janela do M2 Monitor com quatro clientes do jogo" data-save="Guardar" data-cancel="Cancelar">
         <div class="mock-head">
           <div><b>M2 Monitor</b><br><span>4 clients, 4 connected</span></div>
           <span class="pill">Administrator</span>
         </div>
         <div class="client">
-          <div class="who"><b>Ravenshade</b><small>Client 1 · PID 7804</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">Ravenshade</b><button type="button" class="pen-btn" aria-label="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 1 · PID 7804">Client 1 · PID 7804</small></div>
           <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="47">47 ms</span><span>In 2.4 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client">
-          <div class="who"><b>LotusBlade</b><small>Client 2 · PID 12496</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">LotusBlade</b><button type="button" class="pen-btn" aria-label="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 2 · PID 12496">Client 2 · PID 12496</small></div>
           <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="69">69 ms</span><span>In 0.1 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client">
-          <div class="who"><b>IronMonk</b><small>Client 3 · PID 22628</small></div>
+          <div class="who"><div class="mname-row"><b class="mname">IronMonk</b><button type="button" class="pen-btn" aria-label="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 3 · PID 22628">Client 3 · named by you</small></div>
           <div class="stats"><span class="srv">203.0.113.57:12100</span><span class="rtt" data-base="128">128 ms</span><span>In 0.3 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
         <div class="client reading">
-          <div class="who"><b>Reading name…</b><small>Client 4 · PID 27532</small></div>
+          <div class="who"><div class="mname-row"><b class="mname" data-auto="1">Reading name…</b><button type="button" class="pen-btn" aria-label="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div><small data-base="Client 4 · PID 27532">Client 4 · PID 27532</small></div>
           <div class="stats"><span class="srv">203.0.113.59:12602</span><span class="rtt" data-base="46">46 ms</span><span>In 3.2 KB/s</span></div>
           <span class="dc">Disconnect</span>
         </div>
-        <p class="example-note">Dados de exemplo</p>
+        <p class="example-note"><span class="mock-hint">Experimenta: clica num nome para o mudar</span> · Dados de exemplo</p>
       </div>
     </div>
   </section>
@@ -135,7 +144,7 @@
         </div>
         <div class="feature">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/></svg>Não mexe no jogo</h3>
-          <p>Sem injeção, sem leitura de memória, sem pacotes enviados. As capturas para ler o nome ficam só em memória e nunca são guardadas.</p>
+          <p>Sem injeção, sem leitura de memória, sem pacotes enviados. As capturas para ler o nome ficam só em memória e nunca são guardadas. Corre com prioridade baixa, para o jogo vir sempre primeiro.</p>
         </div>
         <div class="feature">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg>Código aberto</h3>
@@ -179,6 +188,7 @@
             <li><a href="https://github.com/IliescuM/m2monitor/releases/latest/download/M2Monitor.exe">Transfere o M2Monitor.exe</a> e guarda-o onde quiseres, por exemplo em Documentos.</li>
             <li>Faz duplo clique. Se o Windows mostrar “O Windows protegeu o seu PC”, clica em <b>Mais informações</b> e depois em <b>Executar mesmo assim</b>. A aplicação não tem assinatura digital, o que é normal em ferramentas gratuitas feitas por gosto.</li>
             <li>Clica em <b>Restart as administrator</b> na janela para ativar a latência, o tráfego e a desconexão.</li>
+            <li><b>Atualizar:</b> fecha o M2 Monitor, transfere o novo M2Monitor.exe e substitui o ficheiro antigo. As definições mantêm-se.</li>
           </ol>
           <p class="note">Nomes, servidores e dados dos processos funcionam sem direitos de administrador. O Windows só deixa programas com direitos de administrador ler as estatísticas de cada ligação e reiniciá-las.</p>
         </div>
@@ -237,6 +247,6 @@ python m2monitor.py</code></pre>
   </div>
 </footer>
 
-<script src="../site.js?v=e20082e7b2"></script>
+<script src="../site.js?v=6a04e72273"></script>
 </body>
 </html>

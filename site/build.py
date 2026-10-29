@@ -154,6 +154,8 @@ def main():
                       css_version=file_version("style.css"), js_version=file_version("site.js"))
         html = re.sub(r"\{\{(\w+)\}\}", lambda m: values[m.group(1)], template)
         html = html.replace("{dl}", DOWNLOAD_URL).replace("{repo}", REPO_URL)
+        # "{v}" in the strings is the latest release version.
+        html = html.replace("{v}", version) if version else html.replace(" v{v}", "").replace("{v}", "")
 
         out_dir = DOCS if lang == DEFAULT else os.path.join(DOCS, lang)
         os.makedirs(out_dir, exist_ok=True)
